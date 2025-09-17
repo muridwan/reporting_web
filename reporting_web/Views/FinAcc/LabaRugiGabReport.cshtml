@@ -1,0 +1,134 @@
+﻿@model reporting_web.Models.Datepickermodel
+
+@{
+    ViewBag.Title = "Laba Rugi Gabungan Peserta dan Pengelola";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="~/Content/spinmodal.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+<div class="row">
+    <div class="col-md-6">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h2>Selection Data</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <div>
+                        <label>Start Date</label>
+                    </div>
+                    <div>
+                        <input id="fromdate" type="text" name="FromDate" class="datepicker" />
+                    </div>
+                    @*@Html.EditorFor(model => model.DateData, new { htmlAttributes = new { @class = "datepicker" } })*@
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>End Date</label>
+                    </div>
+                    <div>
+                        <input id="todate" type="text" name="ToDate" class="datepicker" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>Branch</label>
+                    </div>
+                    <div>
+                        <select id="BranchSel" multiple="multiple" required=required name="BranchSel">
+
+
+                            @if (ViewBag.BranchCode != null)
+                            {
+                                foreach (var item in ViewBag.BranchCode)
+                                {
+                                    if (item.Text != null)
+                                    {
+                                        <option value="@item.Value">
+                                            (@item.Value) @item.Text
+                                        </option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div>
+                            <button class="btn btn-info" id="btnLoadReportLabaRugiGab">Load Report</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    @*<div class="col-md-8">
+                            <center>
+                                <div id='loadingmessage' style='display:none'>
+                                    <img src="~/img/Spinner-2.gif" />
+                                </div>
+                            </center>
+                        </div>*@
+                    <div class="spinnermodal" id="progressbar" style="display: none; z-index: 10001">
+                        <div style="position: fixed; z-index: 10001; top: 50%; left: 50%; height:65px">
+                            <img src="~/img/Spinner-2.gif" alt="Loading..." />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*}*@
+<div>
+
+
+
+</div>
+
+
+
+@section scripts
+{
+
+    <script src="~/Scripts/jquery-ui-1.12.1.js"></script>
+    <script src="~/Scripts/AASReport/AasReport.js"></script>
+    <script src="~/Content/bootstrap-multiselect.js"></script>
+    <script>
+    $(document).ready(function () {
+       $(".datepicker").datepicker({
+          dateFormat: "mm-dd-yy",
+          changeMonth: true,
+          changeYear: true,
+          //yearRange: "-10:+10"
+          //minDate: new Date(2020, 0, 1),
+          //maxDate: new Date(2021, 0, 1),
+          showOn: "both",
+          buttonText: "<i class='fa fa-calendar'></i>"
+       });
+       $(function () {
+            $('#BranchSel').multiselect({
+                includeSelectAllOption: true,         /*To enable the Select all Option*/
+                selectAllValue: 'multiselect-all',     /*The value used for the select all option can be configured using the selectAllValue*/
+                enableFiltering: true,   /*A filter input will be added to dynamically filter all the options*/
+                enableCaseInsensitiveFiltering: true,  /*To enable Case Insenstitive Filtering (Upper and Lower Case Letters)*/
+                maxHeight: '300',
+                buttonWidth: '300',
+                nSelectedText: 'Selecciones',
+                enableHTML: true,
+                templates: {
+                    filter: '<li class="multiselect-item multiselect-filter"><div class="input-group mb-3"><div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-search"></i></span></div><input class="form-control multiselect-search" type="text" /></div></li>',
+                    filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default multiselect-clear-filter" type="button"><i class="fa fa-times"></i></button></span>'
+                }
+            });
+
+            $('.multiselect-container .multiselect-filter', $('#BranchSel').parent()).css({
+            'position': 'sticky', 'top': '0px', 'z-index': 1,
+            })
+       });
+    });
+    </script>
+}

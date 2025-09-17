@@ -1,0 +1,502 @@
+﻿@model reporting_web.Models.Datepickermodel
+@{
+    ViewBag.Title = "Data Persentase Kontribusi Cabang";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+@*<link href="https://cdn.datatables.net/plug-ins/1.11.2/integration/font-awesome/dataTables.fontAwesome.css" rel="stylesheet">*@
+<link href="~/Content/jquery.dataTables-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.fontAwesome-1.11.2.css" rel="stylesheet" />
+<link href="~/Content/buttons.dataTables-2.0.1.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet"/>
+<link href="~/Content/rowReorder.dataTables.min.css" rel="stylesheet"/>
+<link href="~/Content/responsive.dataTables.min.css" rel="stylesheet"/>
+
+@*<link href="https://cdn.datatables.net/buttons/2.0.1/css/buttons.dataTables.min.css" rel="stylesheet" />*@
+@*<link href="https://cdn.datatables.net/1.11.2/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.11.2/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="~/Scripts/AASReport/AasReport.js"></script>
+
+@*<div class="jumbotron">Crystal Report in ASP.NET</div>*@
+@*@using (Html.BeginForm())
+    {*@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h2>Select Filter</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <div>
+                        <label>Start Date</label>
+                    </div>
+                    <div>
+                        <input id="fromdate" type="text" name="FromDate" class="datepicker" />
+                    </div>
+                    @*@Html.EditorFor(model => model.DateData, new { htmlAttributes = new { @class = "datepicker" } })*@
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>End Date</label>
+                    </div>
+                    <div>
+                        <input id="todate" type="text" name="ToDate" class="datepicker" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>COB</label>
+                    </div>
+                    <div>
+                        <input id="txtcobname" type="text" name="CobName" />
+                        <input id="cobid" type="hidden" name="CobID"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>TOC</label>
+                    </div>
+                    <div class="col-12">
+                        <select id="COBSel" multiple="multiple" required=required name="COBSel">
+
+
+                            @if (ViewBag.COBID != null)
+                            {
+                                foreach (var item in ViewBag.COBID)
+                                {
+                                    if (item.Text != null)
+                                    {
+                                        <option value="@item.Value">
+                                            @item.Value-@item.Text
+                                        </option>
+                                        }
+                                    }
+                                }
+                        </select>
+                    </div>
+                </div>  
+                <div class="form-group">
+                    <div class="row">
+                        @*<div class="col-md-4">                            
+                            <button class="btn btn-info" id="btnGetProduksi">Get With Clear Production Data</button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-info" id="btnGetAppendProduksi">Get With Append Production Data</button>
+                        </div>*@
+                        <div class="col-md-4">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-info" id="btnLoadTablePersenKontribusiCbg"> Load Table <br> Production Data</button>
+                        </div>
+                        @*<input type="button" id="btnmyCountries" value="Get Selected Countries" />*@
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-8">
+                        <center>
+
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*}*@
+<div>
+
+
+
+</div>
+
+
+<div id="divDynamic"></div>
+
+<div id="message_table_cob"></div>
+
+<div id="message_table_toc"></div>
+
+<div id="divPeriode"></div>
+
+<div id="divGetPeriode"></div>
+
+<div>
+    Toggle column: <a class="toggle-vis" data-column="1">Kode Cabang</a> @*- <a class="toggle-vis" data-column="1">Nama Cabang</a> - <a class="toggle-vis" data-column="2">Kontribusi</a> - <a class="toggle-vis" data-column="3">Presentasi</a> *@
+    <table id="tblpersenkontribusicbg" class="display dataTable"  style="width:100%">       
+            <thead>
+                <tr>
+                    <th width="5%">No</th>
+                    <th width="10%" style="display:none">Kode Cabang</th>
+                    <th>Nama Cabang</th>
+                    <th>Kontribusi</th>
+                    <th>Persentase</th>
+                </tr>
+            </thead>            
+            <tfoot>
+                @*<tr>
+                    <th>Kode Cabang</th>
+                    <th>Nama Cabang</th>
+                    <th>Kontribusi</th>
+                    <th>Persentase</th>
+                </tr>*@
+                <tr>    
+                    <th></th>
+                    <th></th>
+                    <th>Total</th>
+                    <th id="totalft" align="right"></th>
+                    <th id="persenft" align="right"></th>
+                </tr>
+            </tfoot>
+        </table>
+</div>
+<div id="total"></div>
+
+
+@section scripts
+{
+    <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>
+    <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>
+    @*<script src="~/Scripts/jquery.dataTables-1.12.1.min"></script>*@
+    <script src="~/Scripts/sum()-1.11.2.js"></script>
+    <script src="~/Scripts/dataTables.buttons-2.0.1.min.js"></script>
+    <script src="~/Scripts/jszip-3.1.3.min.js"></script>
+    <script src="~/Scripts/pdfmake-0.1.53.min.js"></script>
+    <script src="~/Scripts/vfs_fonts-0.1.53.js"></script>
+    <script src="~/Scripts/buttons.html5-2.0.1.min.js"></script>
+    <script src="~/Scripts/buttons.print-2.0.1.min.js"></script>
+    <script src="~/Content/bootstrap-multiselect.js"></script>
+    <script src="~/Scripts/dataTables.rowReorder.min.js"></script>
+    <script src="~/Scripts/dataTables.responsive.min.js"></script>      
+    
+    @*<script src="https://cdn.datatables.net/plug-ins/1.10.19/api/sum().js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/1.11.2/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.11.2/js/dataTables.bootstrap4.min.js "></script>*@
+
+    <script>
+
+    $(document).ready(function () {
+        //$('#COBSel').multiselect();
+       $(function () {
+            $('#COBSel').multiselect({
+                includeSelectAllOption: true,         /*To enable the Select all Option*/
+                selectAllValue: 'multiselect-all',     /*The value used for the select all option can be configured using the selectAllValue*/
+                enableFiltering: true,   /*A filter input will be added to dynamically filter all the options*/
+                enableCaseInsensitiveFiltering: true,  /*To enable Case Insenstitive Filtering (Upper and Lower Case Letters)*/
+                maxHeight: '300',
+                buttonWidth: '300',
+                nSelectedText: 'Selecciones',
+                enableHTML: true,
+                templates: {
+                    filter: '<li class="multiselect-item multiselect-filter"><div class="input-group mb-3"><div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-search"></i></span></div><input class="form-control multiselect-search" type="text" /></div></li>',
+                    filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default multiselect-clear-filter" type="button"><i class="fa fa-times"></i></button></span>'
+                }
+            });
+
+            $('.multiselect-container .multiselect-filter', $('#COBSel').parent()).css({
+            'position': 'sticky', 'top': '0px', 'z-index': 1,
+            })
+       });
+
+       $("#btnmyCountries").click(function () {
+            var selected = $("#COBSel option:selected");    /*Current Selected Value*/
+            var message = "''";
+            var arrSelected = [];      /*Array to store multiple values in stack*/
+            selected.each(function () {
+                arrSelected.push($(this).val());    /*Stack the Value*/
+                message += " OR TOC = '" + $(this).val() +"'"; //+ $(this).text() + "',"; //+ $(this).val() + "\n";
+            });
+            alert(message);
+       });
+
+       $("#txtcobname").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '/Home/AutoComplete/',
+                        data: "{'prefix': '" + request.term + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return item;
+                            }))
+                        },
+                        error: function (response) {
+                            alert(response.responseText);
+                        },
+                        failure: function (response) {
+                            alert(response.responseText);
+                        }
+                    });
+                },
+                select: function (e, i) {
+                    $("#cobid").val(i.item.val);
+                    $.ajax({
+                        url: '/master/getTOC/?cobid='+$("#cobid").val(),
+                        dataType: "json",
+                        type: "GET",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            var select = $('#COBSel');
+                            select.empty();
+                            $('#COBSel').multiselect('rebuild');
+                            //select.find('option').remove().end()
+                            //.append($('<option/>').val('').text('Select'));
+                            //var data = [{"id":1,"title":"Option one"}, {"id":2,"title":"Option two"}];
+                            for(var i in data) {
+                                var d = data[i];
+                                var option = $('<option/>').val(d.val).text(d.val + '-' + d.label);
+                                select.append(option);
+                            }
+                            select.val('');
+                            $('#COBSel').multiselect('rebuild');
+                        },
+                    });
+                },
+                minLength: 1
+       });
+
+       $(".datepicker").datepicker({
+          dateFormat: "mm-dd-yy",
+          changeMonth: true,
+          changeYear: true,
+          //yearRange: "-10:+10"
+          //minDate: new Date(2020, 0, 1),
+          //maxDate: new Date(2021, 0, 1),
+          showOn: "both",
+          buttonText: "<i class='fa fa-calendar'></i>"
+       });
+
+       $("#btnLoadTablePersenKontribusiCbg").click(function () {
+        var $sdate = $('#fromdate').val();
+        var $edate = $('#todate').val();
+        var $cobid = $('#cobid').val();
+        var $cobdes = $('#txtcobname').val();
+        var $tocid  = "''";
+        var $listTOC = new Array();
+        $listTOC = [];
+        var $tocdes = "''";
+        //TOC Selected
+        var selected = $("#COBSel option:selected");    /*Current Selected Value*/
+        var arrSelected = [];      /*Array to store multiple values in stack*/
+            selected.each(function () {
+                arrSelected.push($(this).val());    /*Stack the Value*/
+                $tocid += " , TOC = " + $(this).val() +"";
+                $listTOC.push($(this).val());
+                $tocdes += ",'" + $(this).text() +"'";
+        });
+
+        if ($cobid == ""||$cobdes == "")
+        {
+            $cobid = "%";
+            $cobdes = "ALL";
+        }
+
+        if ($tocid == "''"||$tocdes == "''")
+        {
+            $tocid = "%";
+            $tocdes = "ALL";
+        }
+        var $message = "PERIODE: " + $sdate + " s/d " + $edate + "\n";
+        $message += "BY COB: " + $cobdes + "\n";
+        $message += "BY TOC: " + $tocdes + "\n";
+        $("#tblpersenkontribusicbg").dataTable().fnDestroy();
+        $('#divPeriode').html('<b>'+ "Periode: " +$sdate + ' s/d ' + $edate);
+        $('#message_table_cob').html('<b>'+ "BY COB: " + $cobdes );
+        $('#message_table_toc').html('<b>'+ "BY TOC: " + $tocdes );
+
+        var resDataPer = function () {
+            var dataPer = null;
+            $.ajax({
+                url: '/master/getsysInfo/?stype=PRD',
+                dataType: "json",
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                'async': false,
+                success: function (data) {
+                    dataPer = 'Data Per:' + data[0].datecomplete;
+                    $('#divGetPeriode').html('<b>'+dataPer);
+                },
+            });
+            return dataPer;
+        }();
+        $message += resDataPer;
+
+        //$('#tblpersenkontribusicbg').append('<caption style="caption-side: bottom">A fictional company\'s staff table.</caption>');
+        //$('#tblpersenkontribusicbg').append('<caption style="caption-side: top">Periode: '+ $sdate + ' s/d ' + $edate +'</caption>');
+        var token = $('[name=__RequestVerificationToken]').val();
+        var table = $('#tblpersenkontribusicbg').DataTable({
+            "ajax": {
+              //"url": '/Produksi/GetDataDate?SDate='+$sdate+"&EDate="+$edate+"&TypeReport=PERSENKONTRIBUSICBG&ListTOC="+$listTOC+"&COB="+$cobid+"&TOC="+$tocid,
+              "url": '/Produksi/GetDataDate',
+              "data": {'__RequestVerificationToken': token, 'SDate': $sdate  ,'EDate': $edate ,'TypeReport': "PERSENKONTRIBUSICBG",'ListTOC': $listTOC ,'COB': $cobid,'TOC': $tocid  },
+              "processing":true,
+              "serverSide":true,
+              "type": "POST", // ajax type must be match to controllers action type
+              "datatype":"json",
+              "async": false,
+              error: function (xhr, textStatus, errorThrown) {
+                alert(errorThrown);
+
+              }
+            },
+            "drawCallback": function () {
+                var sum = $('#tblpersenkontribusicbg').DataTable().column(3).data().sum();
+                var sumpersen = $('#tblpersenkontribusicbg').DataTable().column(4).data().sum();
+                $('#total').html('<b>Total Kontribusi: '+ number_format(sum,2,'.',','));
+                $('#totalft').html(number_format(sum,2,'.',','));
+                $('#persenft').html(number_format(sumpersen,2,'.',','));
+            },
+            "columns": [
+                 { "data": "branch"},
+                 { "data": "branch",visible: false },
+                 { "data": "Name" },
+                 { "data": "Kontribusi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right"},
+                 { "data": "Persentasi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            ],
+            //"dom": 'Bfrtip',
+            //"dom": "l<t>Bfrtip",
+        "dom": "<'row'<'col-sm-6'l>>" +
+                "<'row'<'col-sm-6'B><'col-sm-6'f>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+         //"dom": '<"top"fl>rBt<"bottom"ip><"clear">',
+         //   "buttons": [
+         //       'copy', 'csv', 'excel', 'pdf', 'print'
+        buttons: [
+            'copy',
+            {
+                extend: 'excel',
+                messageTop: $message,
+                footer: true
+            },
+            {
+                extend: 'pdf',
+                messageTop: $message,
+                footer: true
+                //messageBottom: null
+            },
+            {
+                extend: 'print',
+                messageTop: $message,
+                footer: true
+            }
+        ],
+        /*rowReorder: {
+            selector: 'td:nth-child(2)'
+        },*/
+        responsive: true,
+        paging: false,
+        columnDefs: [
+            {
+                searchable: false,
+                orderable: false,
+                targets: 0,
+            },
+        ],
+        order: [[3, 'desc']],
+            /*"columnDefs":[{
+                "render": function (data, type, row) {
+                    return commaSeparateNumber(data);
+                },
+            "targets": [2]
+            },]*/
+        });
+        $('a.toggle-vis').on('click', function (e) {
+            e.preventDefault();
+
+            // Get the column API object
+            var column = table.column($(this).attr('data-column'));
+            // Toggle the visibility
+            column.visible(!column.visible());
+        });
+        table.on('order.dt search.dt', function () {
+            let i = 1;
+
+            table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
+                this.data(i++);
+            });
+        }).draw();
+       });
+
+
+       function number_format(number, decimals, dec_point, thousands_sep) {
+            // http://kevin.vanzonneveld.net
+            // +   original by: Jonas Raoni Soares Silva (http://www.jsfromhell.com)
+            // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+            // +     bugfix by: Michael White (http://getsprink.com)
+            // +     bugfix by: Benjamin Lupton
+            // +     bugfix by: Allan Jensen (http://www.winternet.no)
+            // +    revised by: Jonas Raoni Soares Silva (http://www.jsfromhell.com)
+            // +     bugfix by: Howard Yeend
+            // +    revised by: Luke Smith (http://lucassmith.name)
+            // +     bugfix by: Diogo Resende
+            // +     bugfix by: Rival
+            // +      input by: Kheang Hok Chin (http://www.distantia.ca/)
+            // +   improved by: davook
+            // +   improved by: Brett Zamir (http://brett-zamir.me)
+            // +      input by: Jay Klehr
+            // +   improved by: Brett Zamir (http://brett-zamir.me)
+            // +      input by: Amir Habibi (http://www.residence-mixte.com/)
+            // +     bugfix by: Brett Zamir (http://brett-zamir.me)
+            // +   improved by: Theriault
+            // +   improved by: Drew Noakes
+            // *     example 1: number_format(1234.56);
+            // *     returns 1: '1,235'
+            // *     example 2: number_format(1234.56, 2, ',', ' ');
+            // *     returns 2: '1 234,56'
+            // *     example 3: number_format(1234.5678, 2, '.', '');
+            // *     returns 3: '1234.57'
+            // *     example 4: number_format(67, 2, ',', '.');
+            // *     returns 4: '67,00'
+            // *     example 5: number_format(1000);
+            // *     returns 5: '1,000'
+            // *     example 6: number_format(67.311, 2);
+            // *     returns 6: '67.31'
+            // *     example 7: number_format(1000.55, 1);
+            // *     returns 7: '1,000.6'
+            // *     example 8: number_format(67000, 5, ',', '.');
+            // *     returns 8: '67.000,00000'
+            // *     example 9: number_format(0.9, 0);
+            // *     returns 9: '1'
+            // *    example 10: number_format('1.20', 2);
+            // *    returns 10: '1.20'
+            // *    example 11: number_format('1.20', 4);
+            // *    returns 11: '1.2000'
+            // *    example 12: number_format('1.2000', 3);
+            // *    returns 12: '1.200'
+            var n = !isFinite(+number) ? 0 : +number,
+                prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+                sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+                dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+                toFixedFix = function (n, prec) {
+                    // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+                    var k = Math.pow(10, prec);
+                    return Math.round(n * k) / k;
+                },
+                s = (prec ? toFixedFix(n, prec) : Math.round(n)).toString().split('.');
+            if (s[0].length > 3) {
+                s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+            }
+            if ((s[1] || '').length < prec) {
+                s[1] = s[1] || '';
+                s[1] += new Array(prec - s[1].length + 1).join('0');
+            }
+            return s.join(dec);
+        }
+
+
+    });
+    </script>
+}

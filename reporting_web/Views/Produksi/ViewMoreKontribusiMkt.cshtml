@@ -1,0 +1,281 @@
+﻿@model reporting_web.Models.Datepickermodel
+@{
+    ViewBag.Title = "Data Persentase Kontribusi MKT";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+@*<link href="https://cdn.datatables.net/plug-ins/1.11.2/integration/font-awesome/dataTables.fontAwesome.css" rel="stylesheet">*@
+<link href="~/Content/jquery.dataTables-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.fontAwesome-1.11.2.css" rel="stylesheet" />
+<link href="~/Content/buttons.dataTables-2.0.1.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+<link href="~/Content/rowReorder.dataTables.min.css" rel="stylesheet" />
+<link href="~/Content/responsive.dataTables.min.css" rel="stylesheet" />
+
+@*<link href="https://cdn.datatables.net/buttons/2.0.1/css/buttons.dataTables.min.css" rel="stylesheet" />*@
+@*<link href="https://cdn.datatables.net/1.11.2/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.11.2/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="~/Scripts/AASReport/AasReport.js"></script>
+
+@*<div class="jumbotron">Crystal Report in ASP.NET</div>*@
+@*@using (Html.BeginForm())
+    {*@
+@*}*@
+<div>
+
+
+
+</div>
+
+
+<div id="divDynamic"></div>
+
+<div id="message_table_cbg"></div>
+
+<div id="message_table_toc"></div>
+
+<div id="divPeriode"></div>
+
+<div id="divGetPeriode"></div>
+
+<div>
+    @Html.AntiForgeryToken()
+    @*Toggle column: <a class="toggle-vis" data-column="1">Kode COB</a> - <a class="toggle-vis" data-column="1">Nama Cabang</a> - <a class="toggle-vis" data-column="2">Kontribusi</a> - <a class="toggle-vis" data-column="3">Presentasi</a> *@
+    <table id="tblpersenkontribusimkt" class="display dataTable" style="width:100%">
+        <thead>
+            <tr>
+                <th width="5%">No</th>
+                <th>MKT</th>
+                <th>Kontribusi</th>
+                <th>Persentase</th>
+            </tr>
+        </thead>
+        <tfoot>
+            @*<tr>
+                    <th>Kode Cabang</th>
+                    <th>Nama Cabang</th>
+                    <th>Kontribusi</th>
+                    <th>Persentase</th>
+                </tr>*@
+            <tr>
+                <th></th>
+                <th>Total</th>
+                <th id="totalft" align="right"></th>
+                <th id="persenft" align="right"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+<div id="total"></div>
+
+
+@section scripts
+{
+    <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>
+    <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>
+    @*<script src="~/Scripts/jquery.dataTables-1.12.1.min"></script>*@
+    <script src="~/Scripts/sum()-1.11.2.js"></script>
+    <script src="~/Scripts/dataTables.buttons-2.0.1.min.js"></script>
+    <script src="~/Scripts/jszip-3.1.3.min.js"></script>
+    <script src="~/Scripts/pdfmake-0.1.53.min.js"></script>
+    <script src="~/Scripts/vfs_fonts-0.1.53.js"></script>
+    <script src="~/Scripts/buttons.html5-2.0.1.min.js"></script>
+    <script src="~/Scripts/buttons.print-2.0.1.min.js"></script>
+    <script src="~/Content/bootstrap-multiselect.js"></script>
+    <script src="~/Scripts/dataTables.rowReorder.min.js"></script>
+    <script src="~/Scripts/dataTables.responsive.min.js"></script>
+    <script src="~/Scripts/AASReport/customaas.js"></script>
+    @*<script src="https://cdn.datatables.net/plug-ins/1.10.19/api/sum().js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/1.11.2/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.11.2/js/dataTables.bootstrap4.min.js "></script>*@
+
+    <script>
+      if("@ViewBag.STATUS" == "MONTH" || "@ViewBag.STATUS" == "YEAR" || "@ViewBag.STATUS" == "LASTMONTH"  || "@ViewBag.STATUS" == "LASTYEAR")
+      {
+        $(document).ready(function () {
+
+            //var $sdate = $('#fromdate').val();
+            //var $edate = $('#todate').val();
+            var $kdcbg = "@ViewBag.CBG";
+            var $nmcbg = "";
+            if ($kdcbg == "%")
+            {
+                $nmcbg = "ALL";
+            }
+            else
+            {
+                $.ajax({
+                        url: '/master/getBranch/?kdcbg='+$kdcbg,
+                        dataType: "json",
+                        type: "GET",
+                        contentType: "application/json; charset=utf-8",
+                        'async': false,
+                        success: function (data) {
+                            $nmcbg = data[0].Name;
+                        },
+                });
+            }
+            var date = new Date();
+            var firstDayYearNow = getFirstDayYear(date);
+            var fd = new Date(date.getFullYear(), date.getMonth(), 1);
+            var ld = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            var fdLast = getFirstDateLast(fd);
+            date = new Date(fdLast);
+            var ldLast = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            ldLast = getFormattedDate(ldLast);
+            var firstDayYearLast = getFirstDayYear(date);
+
+            if("@ViewBag.STATUS" == "MONTH")
+                var $sdate = getFormattedDate(fd);
+            else if("@ViewBag.STATUS" == "YEAR")
+                var $sdate = firstDayYearNow;//getFirstDayYear(date);
+            else if ("@ViewBag.STATUS" == "LASTMONTH")
+                var $sdate = fdLast;
+            else if ("@ViewBag.STATUS" == "LASTYEAR")
+                var $sdate = firstDayYearLast;
+
+            if ("@ViewBag.STATUS" == "LASTMONTH" ||"@ViewBag.STATUS" == "LASTYEAR")
+                var $edate = ldLast;
+            else
+                var $edate = getFormattedDate(ld);
+
+            var $message = "PERIODE: " + $sdate + " s/d " + $edate + "\n";
+            $("#tblpersenkontribusimkt").dataTable().fnDestroy();
+            $('#divPeriode').html('<b>'+ "Periode: " +$sdate + ' s/d ' + $edate);
+            $('#message_table_cbg').html('<b>' + "Kode Kantor Operasional: " + (($kdcbg == "%") ? "ALL" : $kdcbg) +"<br>Kantor Operasional: " + $nmcbg);
+
+            var resDataPer = function () {
+                var dataPer = null;
+                $.ajax({
+                    url: '/master/getsysInfo/?stype=PRD',
+                    dataType: "json",
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    'async': false,
+                    success: function (data) {
+                        dataPer = 'Data Per:' + data[0].datecomplete;
+                        $('#divGetPeriode').html('<b>'+dataPer);
+                    },
+                });
+                return dataPer;
+            }();
+            $message += resDataPer;
+
+            //$('#tblpersenkontribusimkt').append('<caption style="caption-side: bottom">A fictional company\'s staff table.</caption>');
+            //$('#tblpersenkontribusimkt').append('<caption style="caption-side: top">Periode: '+ $sdate + ' s/d ' + $edate +'</caption>');
+            var token = $('[name=__RequestVerificationToken]').val();
+            var tokenuser = "@Session["Token"]";
+            var roleid = @Session["RoleId"];
+            var table = $('#tblpersenkontribusimkt').DataTable({
+                "ajax": {
+                  //"url": '/Produksi/GetDataDate?SDate='+$sdate+"&EDate="+$edate+"&TypeReport=PERSENKONTRIBUSICBG&ListTOC="+$listTOC+"&COB="+$cobid+"&TOC="+$tocid,
+                  "url": '/Produksi/GetDataDate',
+                  "data": {'__RequestVerificationToken': token, 'SDate': $sdate  ,'EDate': $edate ,'TypeReport': "PERSENKONTRIBUSIMKTCBG",'ListTOC': "%" ,'COB': $kdcbg,'TOC': "%", 'stoken': tokenuser, 'iroleid': roleid},
+                  "processing":true,
+                  "serverSide":true,
+                  "type": "POST", // ajax type must be match to controllers action type
+                  "datatype":"json",
+                  "async": false,
+                  error: function (xhr, textStatus, errorThrown) {
+                    alert(errorThrown);
+
+                  }
+                },
+                "drawCallback": function () {
+                    var sum = $('#tblpersenkontribusimkt').DataTable().column(2).data().sum();
+                    var sumpersen = $('#tblpersenkontribusimkt').DataTable().column(3).data().sum();
+                    $('#total').html('<b>Total Kontribusi: '+ number_format(sum,2,'.',','));
+                    $('#totalft').html(number_format(sum,2,'.',','));
+                    $('#persenft').html(number_format(sumpersen,2,'.',','));
+                },
+                "columns": [
+                     { "data": "SortNo"},
+                     { "data": "MKT" },
+                     { "data": "Kontribusi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right"},
+                     { "data": "Persentasi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                ],
+                //"dom": 'Bfrtip',
+                //"dom": "l<t>Bfrtip",
+            "dom": "<'row'<'col-sm-6'l>>" +
+                    "<'row'<'col-sm-6'B><'col-sm-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+             //"dom": '<"top"fl>rBt<"bottom"ip><"clear">',
+             //   "buttons": [
+             //       'copy', 'csv', 'excel', 'pdf', 'print'
+            buttons: [
+                'copy',
+                {
+                    extend: 'excel',
+                    messageTop: $message,
+                    footer: true
+                },
+                {
+                    extend: 'pdf',
+                    messageTop: $message,
+                    footer: true
+                    //messageBottom: null
+                },
+                {
+                    extend: 'print',
+                    messageTop: $message,
+                    footer: true
+                }
+            ],
+            /*rowReorder: {
+                selector: 'td:nth-child(2)'
+            },*/
+            autoWidth: false,
+            responsive: true,
+            paging: false,
+            columnDefs: [
+                {
+                    searchable: false,
+                    orderable: false,
+                    targets: 0,
+                },
+                {width: "2px",targets: 0},
+                {width: "10px",targets: 1}
+            ],
+            order: [[3, 'desc']],
+                /*"columnDefs":[{
+                    "render": function (data, type, row) {
+                        return commaSeparateNumber(data);
+                    },
+                "targets": [2]
+                },]*/
+            });
+            $('a.toggle-vis').on('click', function (e) {
+                e.preventDefault();
+
+                // Get the column API object
+                var column = table.column($(this).attr('data-column'));
+                // Toggle the visibility
+                column.visible(!column.visible());
+            });
+            table.on('order.dt search.dt', function () {
+                let i = 1;
+
+                table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
+                    this.data(i++);
+                });
+            }).draw();
+        });
+      }
+      else
+      {
+            alert ("Status Not Found");
+      }
+    </script>
+}

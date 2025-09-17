@@ -1,0 +1,438 @@
+﻿@model reporting_web.Models.Datepickermodel
+@{
+    ViewBag.Title = "Data Surplus (Defisit) Tabarru";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+@*<link href="https://cdn.datatables.net/plug-ins/1.11.2/integration/font-awesome/dataTables.fontAwesome.css" rel="stylesheet">*@
+<link href="~/Content/jquery.dataTables-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.fontAwesome-1.11.2.css" rel="stylesheet" />
+<link href="~/Content/buttons.dataTables-2.0.1.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+<link href="~/Content/rowReorder.dataTables.min.css" rel="stylesheet" />
+<link href="~/Content/responsive.dataTables.min.css" rel="stylesheet" />
+<!-- Select2 -->
+<link href="~/Content/select2.min.css" rel="stylesheet" />
+
+
+@*<link href="https://cdn.datatables.net/buttons/2.0.1/css/buttons.dataTables.min.css" rel="stylesheet" />*@
+@*<link href="https://cdn.datatables.net/1.11.2/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.11.2/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="~/Scripts/AASReport/AasReport.js"></script>
+@*<div class="jumbotron">Crystal Report in ASP.NET</div>*@
+@*@using (Html.BeginForm())
+    {*@
+@*}*@
+<div>
+
+
+
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-primary">
+            <div class="card-body">
+                <div class="form-group">
+                    <div id="divDynamic"></div>
+
+                    <div id="message_table_cob"></div>
+
+                    <div id="message_table_toc"></div>
+
+                    <div id="divPeriode"></div>
+
+                    <div id="divGetPeriode"></div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>Branch:</label>
+                    </div>
+                    <div>
+                        <select id="selectbranch" class="select2" style="width: 100%;vertical-align:central">
+                            @if (ViewBag.BranchCode != null)
+                            {
+                                foreach (var item in ViewBag.BranchCode)
+                                {
+                                    if (item.Value == "AS")
+                                    {
+                                        <option value="@item.Value" selected>
+                                            (@item.Value) @item.Text
+                                        </option>
+                                    }
+                                    else if (item.Text != null)
+                                    {
+                                        <option value="@item.Value">
+                                            (@item.Value) @item.Text
+                                        </option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    @Html.AntiForgeryToken()
+    <table id="tblLabaRugi" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th align="left" width="60%">URAIAN</th>
+                <th id="nmcabang" width="40%">NAMA CABANG</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>A. PENDAPATAN ASURANSI</th>
+                <td></td>
+            </tr>
+            <tr>
+                <td>A.1. Pendapatan Kontribusi</td>
+                <td id="PendKontribusi">0</td>
+            </tr>
+            <tr>
+                <td>A.2. Bagian Pengelola Atas Kontribusi</td>
+                <td id="KontribusiPengelola">0</td>
+            </tr>
+            <tr>
+                <td>A.3. Bagian Reasuransi Atas Risiko</td>
+                <td id="RisikoReas">0</td>
+            </tr>
+            <tr>
+                <th>Jumlah Pendapatan Asuransi (A.1-A.2-A3)</th>
+                <th id="JumDapatAsuransi">0</th>
+            </tr>
+            <tr>
+                <th>B. BEBAN ASURANSI</th>
+                <td></td>
+            </tr>
+            <tr>
+                <td>B.1. Beban Klaim</td>
+                <td id="BebanKlaim">0</td>
+            </tr>
+            <tr>
+                <td>B.2. Bagian Reasuransi Atas Klaim</td>
+                <td id="ReasKlaim">0</td>
+            </tr>
+            <tr>
+                <td>B.3. Perubahan Penyisihan Klaim Dalam Proses</td>
+                <td id="KlaimProses">0</td>
+            </tr>
+            <tr>
+                <td>B.4. Perubahan Penyisihan Klaim Sudah Terjadi Tetapi Belum Dilaporkan</td>
+                <td id="KlaimBlmLapor">0</td>
+            </tr>
+            <tr>
+                <td>B.5. Perubahan Penyisihan Kontribusi Yang Belum Menjadi Pendapatan</td>
+                <td id="KontribusiBlmDapat">0</td>
+            </tr>
+            <tr>
+                <td>B.6. Perubahan Penyisihan Manfaat Polis Masa Depan</td>
+                <th id="PolisMasaDepan">0</th>
+            </tr>
+            <tr>
+                <td>B.7. Biaya Underwriting Lain</td>
+                <td id="BiayaUndwLain">0</td>
+            </tr>
+            <tr>
+                <th>Jumlah Beban Asuransi (B.1+B.2+B.3+B.4+B.5+B.6+B.7)</th>
+                <th id="JumBebanAsuransi">0</th>
+            </tr>                        
+            <tr>
+                <th>SURPLUS (DEFISIT) UNDERWRITING (A-B)</th>
+                <td id="SurplusUndw">0</td>
+            </tr>
+            <tr>
+                <td>C.1. Surplus Underwriting Yang Dialokasikan Ke Peserta Individual (C x 30%)</td>
+                <th id="SurplusUndwPeserta">0</th>
+            </tr>
+            <tr>
+                <td>C.2. Surplus Underwriting Yang Dialokasikan Ke Entitas Pengelola (C x 30%)</td>
+                <td id="SurplusUndwPengelola">0</td>
+            </tr>
+            <tr>
+                <td>C.3. Surplus Underwriting Yang Dialokasikan Ke Dana Tabarru (C x 40%)</td>
+                <td id="SurplusUndwTabarru">0</td>
+            </tr>
+            <tr>
+                <th>PENDAPATAN DAN BEBAN INVESTASI</th>
+                <td></td>
+            </tr>            
+            <tr>
+                <td>D.1. Pendapatan Bagi Hasil</td>
+                <td id="PendBagiHasil">0</td>
+            </tr>
+            <tr>
+                <td>D.2. Keuntungan Pelepasan Investasi</td>
+                <td id="KeuntunganInves"></td>
+            </tr>            
+            <tr>
+                <td>D.3. Perubahan Nilai Wajar Investasi</td>
+                <td id="PerubahanInves">0</td>
+            </tr>
+            <tr>
+                <td>D.4. Beban Investasi</td>
+                <td id="BebanInves">0</td>
+            </tr>
+            <tr>
+                <th>Jumlah Pendapatan dan Beban Investasi (D.1 + D.2 + D.3 + D.4)</th>
+                <th id="PendBebanInves">0</th>
+            </tr>
+            <tr>
+                <th>E. PENDAPATAN (BEBAN) LAIN-LAIN</th>
+                <th id="PendBebanLain">0</th>
+            </tr>
+            <tr>
+                <th>F. SURPLUS (DEFISIT) DANA TABARRU' (C3 + D)</th>
+                <th id="SurplusTabarru">0</th>
+            </tr>
+            <tr>
+                <th>G. SALDO AWAL DANA TABARRU'</th>
+                <th id="SaldoTabarru">0</th>
+            </tr>
+            <tr>
+                <th>H. SALDO AKHIR DANA TABARRU' (E+F)</th>
+                <th id="SaldoAkhirTabarru">0</th>
+            </tr>                                                                                                                                                            
+        </tbody>
+    </table>
+</div>
+<div id="total"></div>
+
+
+@section scripts
+{
+    <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>
+    <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>
+    @*<script src="~/Scripts/jquery.dataTables-1.12.1.min"></script>*@
+    <script src="~/Scripts/sum()-1.11.2.js"></script>
+    <script src="~/Scripts/dataTables.buttons-2.0.1.min.js"></script>
+    <script src="~/Scripts/jszip-3.1.3.min.js"></script>
+    <script src="~/Scripts/pdfmake-0.1.53.min.js"></script>
+    <script src="~/Scripts/vfs_fonts-0.1.53.js"></script>
+    <script src="~/Scripts/buttons.html5-2.0.1.min.js"></script>
+    <script src="~/Scripts/buttons.print-2.0.1.min.js"></script>
+    <script src="~/Content/bootstrap-multiselect.js"></script>
+    <script src="~/Scripts/dataTables.rowReorder.min.js"></script>
+    <script src="~/Scripts/dataTables.responsive.min.js"></script>
+    <script src="~/Scripts/AASReport/customaas.js"></script>
+    <script src="~/FrontEnd/plugins/select2/js/select2.full.min.js"></script>
+    @*<script src="https://cdn.datatables.net/plug-ins/1.10.19/api/sum().js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/1.11.2/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.11.2/js/dataTables.bootstrap4.min.js "></script>*@
+
+    <script>
+      if("@ViewBag.STATUS" == "MONTH" || "@ViewBag.STATUS" == "YEAR" || "@ViewBag.STATUS" == "LASTMONTH"  || "@ViewBag.STATUS" == "LASTYEAR")
+      {
+          $(document).ready(function () {
+            $('.select2').select2();
+            var date = new Date();
+	    var firstDayYearNow = getFirstDayYear(date);
+            var fd = new Date(date.getFullYear(), date.getMonth(), 1);
+            var ld = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            var fdLast = getFirstDateLast(fd);
+            date = new Date(fdLast);
+            var ldLast = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            ldLast = getFormattedDate(ldLast);
+            var firstDayYearLast = getFirstDayYear(date);
+
+            if("@ViewBag.STATUS" == "MONTH")
+                var $sdate = getFormattedDate(fd);
+            else if("@ViewBag.STATUS" == "YEAR")
+                var $sdate = firstDayYearNow;//getFirstDayYear(date);
+            else if ("@ViewBag.STATUS" == "LASTMONTH")
+                var $sdate = fdLast;
+            else if ("@ViewBag.STATUS" == "LASTYEAR")
+                var $sdate = firstDayYearLast;
+
+            if ("@ViewBag.STATUS" == "LASTMONTH" ||"@ViewBag.STATUS" == "LASTYEAR")
+                var $edate = ldLast;
+            else
+                var $edate = getFormattedDate(ld);
+
+            var $message = "PERIODE: " + $sdate + " s/d " + $edate + "\n";
+            //$("#tblLabaRugi").dataTable().fnDestroy();
+            $('#divPeriode').html('<b>'+ "Periode: " +$sdate + ' s/d ' + $edate);
+
+            var resDataPer = function () {
+                var dataPer = null;
+                $.ajax({
+                    url: '/master/getsysInfo/?stype=ACC',
+                    dataType: "json",
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    'async': false,
+                    success: function (data) {
+                        dataPer = 'Data Per:' + data[0].datecomplete;
+                        $('#divGetPeriode').html('<b>'+dataPer);
+                    },
+                });
+                return dataPer;
+            }();
+            $message += resDataPer;
+
+            $.ajax({
+                url:'/FinAcc/GetDataSurplusTabarruPeriode/',
+                data: {'sdate':$sdate,'edate':$edate},
+                dataType: 'json',
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                'async': false,
+                success: function (data) {
+                    $.each(data.data, function() {
+                        $('#nmcabang').html($('#selectbranch :selected').text());
+                        $('#PendKontribusi').html(number_format(this['PendKontribusi'],0,'.',','));
+                        $('#KontribusiPengelola').html(number_format(this['KontribusiPengelola'],0,'.',','));                       
+                        $('#RisikoReas').html(number_format(this['RisikoReas'],0,'.',','));
+                        $('#JumDapatAsuransi').html(number_format(this['PendAsuransi'],0,'.',','));
+                        $('#BebanKlaim').html(number_format(this['BebanKlaim'],0,'.',','));
+                        $('#ReasKlaim').html(number_format(this['ReasKlaim'],0,'.',','));
+                        $('#KlaimProses').html(number_format(this['KlaimProses'],0,'.',','));
+                        $('#JumBebanAsuransi').html(number_format(this['BebanAsuransi'],0,'.',','));
+                        $('#KlaimBlmLapor').html(number_format(this['KlaimBlmLapor'],0,'.',','));
+                        $('#KontribusiBlmDapat').html(number_format(this['KontribusiBlmDapat'],0,'.',','));
+                        $('#PolisMasaDepan').html(number_format(this['PolisMasaDepan'],0,'.',','));
+                        $('#BiayaUndwLain').html(number_format(this['BiayaUndwLain'],0,'.',','));
+                        $('#SurplusUndw').html(number_format(this['SurplusDefisitUndw'],0,'.',','));
+                        $('#SurplusUndwPeserta').html(number_format(this['SurplusUndwPeserta'],0,'.',','));
+                        $('#SurplusUndwPengelola').html(number_format(this['SurplusUndwPengelola'],0,'.',','));
+                        $('#SurplusUndwTabarru').html(number_format(this['SurplusUndwTabarru'],0,'.',','));
+                        $('#PendBagiHasil').html(number_format(this['PendBagiHasil'],0,'.',','));
+                        $('#KeuntunganInves').html(number_format(this['PelepasanInvestasi'],0,'.',','));
+                        $('#PerubahanInves').html(number_format(this['PerubahanInvestasi'],0,'.',','));
+                        $('#BebanInves').html(number_format(this['BebanInvestasi'],0,'.',','));
+                        $('#PendBebanInves').html(number_format(this['PendBebanInv'],0,'.',','));
+                        $('#PendBebanLain').html(number_format(this['Pendapatan_Beban_Lain'],0,'.',','));
+                        $('#SurplusTabarru').html(number_format(this['SurplusDefisitTabarru'],0,'.',','));
+                        $('#SaldoTabarru').html(number_format(this['SaldoAwalDanaTabarruJalan'],0,'.',','));
+                        $('#SaldoAkhirTabarru').html(number_format(this['SaldoAkhirDanaTabarru'],0,'.',','));
+                    });
+                },
+            });
+            $('#selectbranch').on("change", function(e) {
+                var $branch = $('#selectbranch :selected').val();
+                //alert($branch);
+                $('#nmcabang').html('');
+                $.ajax({
+                url:'/FinAcc/GetDataSurplusTabarruPeriode/',
+                data: {'sdate':$sdate,'edate':$edate,'branch':$branch},
+                dataType: 'json',
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                'async': false,
+                success: function (data) {
+                        $.each(data.data, function() {
+                            //if((this['Branch']!='AS' && data.recordsTotal>1) || (this['Branch']=='AS' && data.recordsTotal==1))
+                            //{
+                                $('#nmcabang').html($('#selectbranch :selected').text());
+                                $('#PendKontribusi').html(number_format(this['PendKontribusi'],0,'.',','));
+                                $('#KontribusiPengelola').html(number_format(this['KontribusiPengelola'],0,'.',','));
+                                $('#RisikoReas').html(number_format(this['RisikoReas'],0,'.',','));
+                                $('#JumDapatAsuransi').html(number_format(this['PendAsuransi'],0,'.',','));
+                                $('#BebanKlaim').html(number_format(this['BebanKlaim'],0,'.',','));
+                                $('#PelepasanInvestasi').html(number_format(this['PelepasanInvestasi'],0,'.',','));
+                                $('#KlaimProses').html(number_format(this['KlaimProses'],0,'.',','));
+                                $('#JumBebanAsuransi').html(number_format(this['BebanAsuransi'],0,'.',','));
+                                $('#KlaimBlmLapor').html(number_format(this['KlaimBlmLapor'],0,'.',','));
+                                $('#KontribusiBlmDapat').html(number_format(this['KontribusiBlmDapat'],0,'.',','));
+                                $('#PolisMasaDepan').html(number_format(this['PolisMasaDepan'],0,'.',','));
+                                $('#BiayaUndwLain').html(number_format(this['BiayaUndwLain'],0,'.',','));
+                                $('#SurplusUndw').html(number_format(this['SurplusDefisitUndw'],0,'.',','));
+                                $('#SurplusUndwPeserta').html(number_format(this['SurplusUndwPeserta'],0,'.',','));
+                                $('#SurplusUndwPengelola').html(number_format(this['SurplusUndwPengelola'],0,'.',','));
+                                $('#SurplusUndwTabarru').html(number_format(this['SurplusUndwTabarru'],0,'.',','));
+                                $('#PendBagiHasil').html(number_format(this['PendBagiHasil'],0,'.',','));
+                                $('#KeuntunganInves').html(number_format(this['PelepasanInvestasi'],0,'.',','));
+                                $('#PerubahanInves').html(number_format(this['PerubahanInvestasi'],0,'.',','));
+                                $('#BebanInves').html(number_format(this['BebanInvestasi'],0,'.',','));
+                                $('#PendBebanInves').html(number_format(this['PendBebanInv'],0,'.',','));
+                                $('#PendBebanLain').html(number_format(this['Pendapatan_Beban_Lain'],0,'.',','));
+                                $('#SurplusTabarru').html(number_format(this['SurplusDefisitTabarru'],0,'.',','));
+                                $('#SaldoTabarru').html(number_format(this['SaldoAwalDanaTabarruJalan'],0,'.',','));
+                                $('#SaldoAkhirTabarru').html(number_format(this['SaldoAkhirDanaTabarru'],0,'.',','));
+                            //}
+                        });
+                    },
+                });
+            });
+            //$('#tblLabaRugi').append('<caption style="caption-side: bottom">A fictional company\'s staff table.</caption>');
+            //$('#tblLabaRugi').append('<caption style="caption-side: top">Periode: '+ $sdate + ' s/d ' + $edate +'</caption>');
+            var token = $('[name=__RequestVerificationToken]').val();
+            var table = $('#tblLabaRugi').DataTable({
+                "fnRowCallback": function () {
+
+                },
+                //"dom": 'Bfrtip',
+                //"dom": "l<t>Bfrtip",
+                "dom": "<'row'<'col-sm-6'l>>" +
+                    "<'row'<'col-sm-6'B><'col-sm-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+             //"dom": '<"top"fl>rBt<"bottom"ip><"clear">',
+             //   "buttons": [
+             //       'copy', 'csv', 'excel', 'pdf', 'print'
+                buttons: [
+                    'copy',
+                    {
+                        extend: 'excel',
+                        messageTop: $message,
+                        footer: true
+                    },
+                    {
+                        extend: 'pdf',
+                        messageTop: $message,
+                        footer: true
+                        //messageBottom: null
+                    },
+                    {
+                        extend: 'print',
+                        messageTop: $message,
+                        footer: true,
+                    }
+                ],
+                /*rowReorder: {
+                    selector: 'td:nth-child(2)'
+                },*/
+                paging: false,
+                "columnDefs":[
+                    {"targets":[1],"className":'dt-right'},
+                    {"targets":[0,1],"orderable":false}
+                ],
+                //"columnDefs":[{
+                //    "targets":[1],
+                //    "className":'dt-right',
+                //}],
+                "bInfo":false,
+                "bSort":false,
+
+                    /*"columnDefs":[{
+                        "render": function (data, type, row) {
+                            return commaSeparateNumber(data);
+                        },
+                    "targets": [2]
+                    },]*/
+            });
+        });
+      }
+      else
+      {
+            alert ("Status Not Found");
+      }
+    </script>
+}

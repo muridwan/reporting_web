@@ -1,0 +1,30 @@
+﻿@{    
+    ViewBag.Title = "EmployeeReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Scripts/jquery-1.10.2.js"></script>
+<script src="~/Scripts/EmployeeReport/EmployeeReport.js"></script>
+
+
+<div class="jumbotron">Crystal Report in ASP.NET</div>
+<div class="card-body">
+    <div class="form-group">
+        <label>Date:</label>
+        <div class="input-group date" id="reservationdate" data-target-input="nearest">
+            <input type="text" class="form-control datetimepicker-input" data-target="#reservationdate" />
+            <div class="input-group-append" data-target="#reservationdate" data-toggle="datetimepicker">
+                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+    <div id='loadingmessage' style='display:none'>        
+        <img src="~/img/Spinner-2.gif" /> />
+    </div>
+
+    <button class="btn btn-info" id="btnLoadReport">Load Report</button>
+    <button class="btn btn-info" id="btnRunSp">Run SP</button>
+</div>
+

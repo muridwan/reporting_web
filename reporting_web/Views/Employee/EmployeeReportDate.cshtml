@@ -1,0 +1,50 @@
+﻿@model reporting_web.Models.Datepickermodel
+
+@{ 
+    ViewBag.Title = "EmployeeReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+<div class="card-body">
+    <div class="form-group">
+        <h2>Select Date</h2>
+
+        @using (Html.BeginForm())
+        {
+            @Html.EditorFor(model => model.DateData, new { htmlAttributes = new { @class = "datepicker" } })
+            
+            <input id="fromdate" type="datetime-local" name="FromDate" class="datepicker" />
+            <input id="todate" type="datetime-local" name="ToDate" />
+        }
+
+        
+    </div>
+
+</div>
+
+<div>
+    <button class="btn btn-info" id="btnLoadReportDate">Load Report</button>
+</div>
+
+@section scripts
+{
+
+    <script src="~/Scripts/jquery-ui-1.12.1.js"></script>
+    <script src="~/Scripts/EmployeeReport/EmployeeReport.js"></script>
+    <script>
+    $(document).ready(function () {
+       $(".datepicker").datepicker({
+          dateFormat: "mm-dd-yy",
+          changeMonth: true,
+          changeYear: true,
+          //yearRange: "-10:+10"
+          //minDate: new Date(2020, 0, 1),
+          //maxDate: new Date(2021, 0, 1),
+          showOn: "both",
+          buttonText: "<i class='fa fa-calendar'></i>"
+       });
+    });
+    </script>
+}

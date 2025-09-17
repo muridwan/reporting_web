@@ -1,0 +1,222 @@
+﻿@model reporting_web.Models.Datepickermodel
+
+@{
+    ViewBag.Title = "Surplus Defisit Tabarru";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="~/Content/spinmodal.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+<div class="row">
+    <div class="col-md-6">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h2>Select Condition</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <div>
+                        <label>Start Date</label>
+                    </div>
+                    <div>
+                        <input id="fromdate" type="text" name="FromDate" class="datepicker" />
+                    </div>
+                    @*@Html.EditorFor(model => model.DateData, new { htmlAttributes = new { @class = "datepicker" } })*@
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>End Date</label>
+                    </div>
+                    <div>
+                        <input id="todate" type="text" name="ToDate" class="datepicker" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div>
+                                <label>Saldo Awal Dana Tabarru  Berjalan</label>
+                            </div>
+                            <div>
+                                <input class="number text-right" id="saldoAwalBjl" type="text" name="SaldoAwalBjl" value="0" onfocusout="defaultZero(this);"/>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div>
+                                <label>Saldo Awal Dana Tabarru Lalu</label>
+                            </div>
+                            <div>
+                                <input class="number text-right" id="saldoAwalLalu" type="text" name="SaldoAwalLalu" value="0" onfocusout="defaultZero(this);"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>Branch</label>
+                    </div>
+                    <div>
+                        <select id="BranchSel" multiple="multiple" required=required name="BranchSel">
+
+
+                            @if (ViewBag.BranchCode != null)
+                            {
+                                foreach (var item in ViewBag.BranchCode)
+                                {
+                                    if (item.Text != null)
+                                    {
+                                        <option value="@item.Value">
+                                            (@item.Value) @item.Text
+                                        </option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div>
+                            <button class="btn btn-info" id="btnLoadReportSurplus">Load Report</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    @*<div class="col-md-8">
+                        <center>
+                            <div id='loadingmessage' style='display:none'>
+                                <img src="~/img/Spinner-2.gif" />
+                            </div>
+                        </center>
+                    </div>*@
+                    <div class="col-md-8">
+                        <div class="spinnermodal" id="progressbar" style="display: none; z-index: 10001">
+                            <div style="position: fixed; z-index: 10001; top: 50%; left: 50%; height:65px">
+                                <img src="~/img/Spinner-2.gif" alt="Loading..." />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@*}*@
+</div>
+
+
+
+@section scripts
+{
+
+    <script src="~/Scripts/jquery-ui-1.12.1.js"></script>
+    <script src="~/Scripts/AASReport/AasReport.js"></script>
+    <script src="~/Content/bootstrap-multiselect.js"></script>
+    <script>
+        $(document).ready(function () {
+           $(".datepicker").datepicker({
+              dateFormat: "mm-dd-yy",
+              changeMonth: true,
+              changeYear: true,
+              //yearRange: "-10:+10"
+              //minDate: new Date(2020, 0, 1),
+              //maxDate: new Date(2021, 0, 1),
+              showOn: "both",
+              buttonText: "<i class='fa fa-calendar'></i>"
+           });
+           $('#fromdate').on('change',function(){
+              var selected = $(this).val();
+              var $thn = new Date(selected.substring(6,10)+'-'+selected.substring(0,2)+'-'+selected.substring(3,5)).getFullYear();
+              $.ajax({
+                url: '/FinAcc/getSaldoAWalBjlLalu/?tahun='+$thn,
+                dataType: 'json',
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data){
+                    var d = data[0];
+                    if (!d) {
+                        $('#saldoAwalBjl').val('0');
+                        $('#saldoAwalLalu').val('0');
+                    }
+                    else{
+                        $('#saldoAwalBjl').val(d.valsaldobjl);
+                        $('#saldoAwalLalu').val(d.valsaldolalu);
+                    }
+                }
+              });
+              //alert(new Date(selected.substring(6,10)+'-'+selected.substring(0,2)+'-'+selected.substring(3,5)).getFullYear());
+           });
+           $(function () {
+                $('#BranchSel').multiselect({
+                    includeSelectAllOption: true,         /*To enable the Select all Option*/
+                    selectAllValue: 'multiselect-all',     /*The value used for the select all option can be configured using the selectAllValue*/
+                    enableFiltering: true,   /*A filter input will be added to dynamically filter all the options*/
+                    enableCaseInsensitiveFiltering: true,  /*To enable Case Insenstitive Filtering (Upper and Lower Case Letters)*/
+                    maxHeight: '300',
+                    buttonWidth: '300',
+                    nSelectedText: 'Selecciones',
+                    enableHTML: true,
+                    templates: {
+                        filter: '<li class="multiselect-item multiselect-filter"><div class="input-group mb-3"><div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-search"></i></span></div><input class="form-control multiselect-search" type="text" /></div></li>',
+                        filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default multiselect-clear-filter" type="button"><i class="fa fa-times"></i></button></span>'
+                    }
+                });
+
+                $('.multiselect-container .multiselect-filter', $('#BranchSel').parent()).css({
+                'position': 'sticky', 'top': '0px', 'z-index': 1,
+                })
+            });
+
+           //setInputFilter(document.getElementById("saldoAwalBjl"), function(value) {
+           //   return /^\d*\.?\d*$/.test(value); // Allow digits and '.' only, using a RegExp
+           //});
+           //setInputFilter(document.getElementById("saldoAwalLalu"), function(value) {
+           //   return /^\d*\.?\d*$/.test(value); // Allow digits and '.' only, using a RegExp
+           //});
+          //$('input.number').keyup(function(event) {
+
+              // skip for arrow keys
+         //     if(event.which >= 37 && event.which <= 40) return;
+
+              // format number
+         //     $(this).val(function(index, value) {
+         //       return value
+         //       .replace(/\D/g, "")
+         //       .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+         //       ;
+         //     });
+         //  });
+         $('input.number').keyup(function (event) {
+            // skip for arrow keys
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+
+            var currentVal = $(this).val();
+            var testDecimal = testDecimals(currentVal);
+            if (testDecimal.length > 1) {
+                console.log("You cannot enter more than one decimal point");
+                currentVal = currentVal.slice(0, -1);
+            }
+            $(this).val(replaceCommas(currentVal));
+        });
+
+        function testDecimals(currentVal) {
+            var count;
+            currentVal.match(/\./g) === null ? count = 0 : count = currentVal.match(/\./g);
+            return count;
+        }
+
+        function replaceCommas(yourNumber) {
+            var components = yourNumber.toString().split(".");
+            if (components.length === 1)
+                components[0] = yourNumber;
+            components[0] = components[0].replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (components.length === 2)
+                components[1] = components[1].replace(/\D/g, "");
+            return components.join(".");
+        }
+       });
+    </script>
+}

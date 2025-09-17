@@ -1,0 +1,183 @@
+﻿@model reporting_web.Models.Datepickermodel
+
+@{
+    ViewBag.Title = "Get Data Produksi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+@*<link href="https://cdn.datatables.net/plug-ins/1.11.2/integration/font-awesome/dataTables.fontAwesome.css" rel="stylesheet">*@
+<link href="~/Content/jquery.dataTables-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.fontAwesome-1.11.2.css" rel="stylesheet" />
+
+@*<link href="https://cdn.datatables.net/1.11.2/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/1.11.2/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="~/Scripts/AASReport/AasReport.js"></script>
+
+
+@*<div class="jumbotron">Crystal Report in ASP.NET</div>*@
+@*@using (Html.BeginForm())
+{*@
+    <div id="myToken" data-value="@Request.RequestContext.HttpContext.Session["Token"]"></div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h2>Select Date</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <div>
+                            <label>Start Date</label>
+                        </div>
+                        <div>
+                            <input id="fromdate" type="text" name="FromDate" class="datepicker" />
+                        </div>
+                            @*@Html.EditorFor(model => model.DateData, new { htmlAttributes = new { @class = "datepicker" } })*@                                                                           
+                    </div>
+                    <div class="form-group">
+                        <div>
+                            <label>End Date</label>
+                        </div>
+                        <div>
+                            <input id="todate" type="text" name="ToDate" class="datepicker" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            @Html.AntiForgeryToken()
+                            <div class="col-md-4">
+                                @*<button class="btn btn-info" id="btnLoadReport">Load Report</button>*@
+                                <button class="btn btn-info" id="btnGetProduksi">Get With Clear Production Data</button>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-info" id="btnGetAppendProduksi">Get With Append Production Data</button>
+                            </div>              
+                            <div class="col-md-4">                                
+                                <button class="btn btn-info" id="btnLoadTable"> Load Table <br> Log Data</button>
+                            </div>
+                        </div>
+                    </div>        
+                    <div class="form-group">
+                        <div class="col-md-8">
+                            <center>
+                                
+                            </center>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@*}*@
+<div>
+    
+
+    
+</div>
+
+
+<div id="divDynamic"></div>
+
+<div>
+    <table id="tblproduksi" class="display dataTable" style="width:100%">
+        <thead>
+            <tr>
+                <th>Periode Awal</th>
+                <th>Periode Akhir</th>
+                <th>Tgl Tarik Data</th>
+                <th>Waktu Complete</th>
+                <th>Status</th>
+                <th>Pesan</th>
+                <th>Jumlah Record</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>Periode Awal</th>
+                <th>Periode Akhir</th>
+                <th>Tgl Tarik Data</th>
+                <th>Waktu Complete</th>
+                <th>Status</th>
+                <th>Pesan</th>
+                <th>Jumlah Record</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+
+@section scripts
+{       
+    <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>    
+    <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>        
+    @*<script src="https://cdn.datatables.net/1.11.2/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.2/js/dataTables.bootstrap4.min.js "></script>*@   
+    
+    <script>
+    $(document).ready(function () {
+       $(".datepicker").datepicker({
+          dateFormat: "mm/dd/yy",
+          changeMonth: true,
+          changeYear: true,
+          //yearRange: "-10:+10"
+          //minDate: new Date(2020, 0, 1),
+          //maxDate: new Date(2021, 0, 1),
+          showOn: "both",
+          buttonText: "<i class='fa fa-calendar'></i>"
+       });
+
+       $("#btnLoadTable").click(function () {
+        var $sdate = $('#fromdate').val();
+        var $edate = $('#todate').val();
+        var token = $('[name=__RequestVerificationToken]').val();
+
+        $("#tblproduksi").dataTable().fnDestroy();
+        $('#tblproduksi').DataTable({
+            "ajax": {
+              //"url": '/Produksi/GetDataDate?SDate='+$sdate+"&EDate="+$edate+"&TypeReport=DATALOGPRODUKSI",
+              "url":'/Produksi/GetDataDate',
+              "data": {'__RequestVerificationToken': token, 'SDate': $sdate  ,'EDate': $edate ,'TypeReport': "DATALOGPRODUKSI"},
+              "processing":true,
+              "serverSide":true,
+              "type": "POST", // ajax type must be match to controllers action type
+              "datatype":"json"
+            },
+            "columns": [
+                 { "data": "SDate" },
+                 { "data": "EDate" },
+                 { "data": "DateExecute"},
+                 { "data": "DateComplete" },
+                 { "data": "Status" },
+                 { "data": "Message" },
+                 { "data": "CountRecord" }
+            ],
+            //"columnDefs":[{targets:0, render:function(data){
+            //    return moment(data).format('D MMMM YYYY');
+            //}}]
+            "columnDefs":[
+                {
+                    "render": function(data){
+                        return moment(data).format('D MMMM YYYY');
+                    },
+                    "targets": [0,1]
+                },
+                {
+                    "render": function(data){
+                        return moment(data).format('D MMMM YYYY hh:mm:ss A');
+                    },
+                    "targets": [2,3]
+                },
+            ]
+        });
+       });
+    });
+    </script>
+}

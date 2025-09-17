@@ -1,0 +1,585 @@
+@model reporting_web.Models.Datepickermodel
+@{
+    ViewBag.Title = "Data Laba Rugi Gabungan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" , rel="stylesheet" />
+@*<link href="https://cdn.datatables.net/plug-ins/1.11.2/integration/font-awesome/dataTables.fontAwesome.css" rel="stylesheet">*@
+<link href="~/Content/jquery.dataTables-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.fontAwesome-1.11.2.css" rel="stylesheet" />
+<link href="~/Content/buttons.dataTables-2.0.1.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+<link href="~/Content/rowReorder.dataTables.min.css" rel="stylesheet" />
+<link href="~/Content/responsive.dataTables.min.css" rel="stylesheet" />
+<!-- Select2 -->
+<link href="~/Content/select2.min.css" rel="stylesheet"/>
+
+
+@*<link href="https://cdn.datatables.net/buttons/2.0.1/css/buttons.dataTables.min.css" rel="stylesheet" />*@
+@*<link href="https://cdn.datatables.net/1.11.2/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.11.2/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="~/Scripts/AASReport/AasReport.js"></script>
+@*<div class="jumbotron">Crystal Report in ASP.NET</div>*@
+@*@using (Html.BeginForm())
+    {*@
+@*}*@
+<div>
+
+
+
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-primary">            
+            <div class="card-body">
+                <div class="form-group">
+                    <div id="divDynamic"></div>
+
+                    <div id="message_table_cob"></div>
+
+                    <div id="message_table_toc"></div>
+
+                    <div id="divPeriode"></div>
+
+                    <div id="divGetPeriode"></div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label>Branch:</label>
+                    </div>
+                    <div>
+                        <select id="selectbranch" class="select2" style="width: 100%;vertical-align:central">                            
+                            @if (ViewBag.BranchCode != null)
+                            {
+                                foreach (var item in ViewBag.BranchCode)
+                                {
+                                    if (item.Value == "AS")
+                                    {
+                                        <option value="@item.Value" selected>
+                                            (@item.Value) @item.Text
+                                        </option>
+                                    }
+                                    else if (item.Text != null)
+                                    {
+                                        <option value="@item.Value">
+                                            (@item.Value) @item.Text
+                                        </option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    @Html.AntiForgeryToken()    
+    <table id="tblLabaRugi" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th align="left" width="60%">URAIAN</th>
+                <th id="nmcabang" width="40%">NAMA CABANG</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Tabarru Bruto</th>
+                <td></td>
+            </tr>
+            <tr>
+                <td>a. Kontribusi Langsung</td>
+                <td id="NilaiKL">0</td>
+            </tr>
+            <tr>
+                <td>b. Kontribusi Tidak Langsung</td>
+                <td id="NilaiKTL">0</td>
+            </tr>
+            <tr>
+                <td>c. Komisi Dibayar</td>
+                <td id="NilaiKDB">0</td>
+            </tr>
+            <tr>
+                <th>Jumlah Tabbaru Bruto</th>
+                <th id="JumTB">0</th>
+            </tr>
+            <tr>
+                <th>Tabarru Reasuransi</th>
+                <td></td>
+            </tr>
+            <tr>
+                <td>a. Kontribusi Reasuransi</td>
+                <td id="NilaiKR">0</td>
+            </tr>
+            <tr>
+                <td>b. Ujroh Reasuransi Diterima</td>
+                <td id="NilaiURD">0</td>
+            </tr>
+            <tr>
+                <td>c. Surplus Operasi Reasuransi</td>
+                <td id="NilaiSOR">0</td>
+            </tr>
+            <tr>
+                <th>Jumlah Tabbaru Reasuransi</th>
+                <th id="JumTR">0</th>
+            </tr>
+            <tr>
+                <th>Penurunan (Kenaikan) KYBMP</th>
+                <td></td>
+            </tr>
+            <tr>
+                <td>a. KYBMP Tahun Lalu</td>
+                <td id="KYBMPLalu">0</td>
+            </tr>
+            <tr>
+                <td>b. KYBMP Tahun Berjalan</td>
+                <td id="KYBMPJalan">0</td>
+            </tr>
+            <tr>
+                <th>Penurunan (Kenaikan) KYBMP</th>
+                <th id="JumKYBMP">0</th>
+            </tr>
+            <tr>
+                <th>Penurunan (Kenaikan) PMPMD</th>
+                <td></td>
+            </tr>
+            <tr>
+                <td>a. PMPMD Tahun Lalu</td>
+                <td id="PMPMDLalu">0</td>
+            </tr>
+            <tr>
+                <td>b. PMPMD Tahun Berjalan</td>
+                <td id="PMPMDJalan">0</td>
+            </tr>
+            <tr>
+                <th>Penurunan (Kenaikan) PMPMD</th>
+                <th id="JumPMPMD">0</th>
+            </tr>
+            <tr>
+                <th>Total Penurunan (Kenaikan) Cadangan</th>
+                <th id="JumCadangan">0</th>
+            </tr>
+            <tr>
+                <th>Jumlah Tabarru Netto</th>
+                <th id="JumTabarruNet">0</th>
+            </tr>
+            <tr>
+                <th>Beban Klaim Netto</th>
+                <td></td>
+            </tr>   
+            <tr>
+                <td>Beban Klaim</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>a. Klaim Bruto</td>
+                <td id="KlaimBr">0</td>
+            </tr>
+            <tr>
+                <td>b. Klaim Reasuransi</td>
+                <td id="KlaimRe"></td>
+            </tr>
+            <tr>
+                <td>c. Kenaikan (Penurunan) EKRS</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>c.1. EKRS tahun/triwulan berjalan</td>
+                <td id="EKRSJalan">0</td>
+            </tr>
+            <tr>
+                <td>c.2. EKRS tahun/triwulan lalu</td>
+                <td id="EKRSLalu">0</td>
+            </tr>
+            <tr>
+                <td>d. Kenaikan (Penurunan) IBNR</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>d.1. IBNR tahun/triwulan berjalan</td>
+                <td id="IBNRJalan">0</td>
+            </tr>
+            <tr>
+                <td>d.2. IBNR tahun/triwulan lalu</td>
+                <td id="IBNRLalu">0</td>
+            </tr>
+            <tr>
+                <th>Jumlah Beban Klaim</th>
+                <th id="JumBebanKlaim">0</th>
+            </tr>
+            <tr>
+                <td>Beban Underwriting Lain Netto</td>
+                <td id="BebanUndLainNet">0</td>
+            </tr>
+            <tr>
+                <th>Jumlah Beban Klaim Netto</th>
+                <th id="JumBebanKlaimNet">0</th>
+            </tr>
+            <tr>
+                <th>Hasil Underwriting</th>
+                <th id="HasilUnd">0</th>
+            </tr>
+            <tr>
+                <td>Hasil Investasi</td>
+                <td id="HasilInv">0</td>
+            </tr>
+            <tr>
+                <th>Beban Usaha</th>
+                <td></td>
+            </tr>
+            <tr>
+                <td>a. Beban Pemasaran</td>
+                <td id="BebanPem">0</td>
+            </tr>
+            <tr>
+                <td>b. Beban Umum Pegawai</td>
+                <td id="BebanUPeg">0</td>
+            </tr>
+            <tr>
+                <td>c. Beban Administrasi</td>
+                <td id="BebanAdm">0</td>    
+            </tr>
+            <tr>
+                <th>Jumlah Beban Usaha</th>
+                <th id="JumBebanUsh">0</th>
+            </tr>
+            <tr>
+                <th>Penyisihan Ujrah</th>
+                <th id="JumUjrah">0</th>
+            </tr>
+            <tr>
+                <td>Hasil (Beban) Lain</td>
+                <td id="HasilBebanLain">0</td>
+            </tr>
+            <tr>
+                <td>Alokasi Surplus Ke Peserta</td>
+                <td id="AlSurplusPeserta">0</td>
+            </tr>
+            <tr>
+                <td>Alokasi Surplus Ke Dana Tabarru'</td>
+                <td id="AlSurplusDanaTab">0</td>
+            </tr>
+            <tr>
+                <th>LABA SEBELUM ZAKAT</th>
+                <th id="LabaSebelumZakat">0</th>
+            </tr>
+            <tr>
+                <th>Zakat</th>
+                <th id="zakat"></th>
+            </tr>
+            <tr>
+                <th>LABA SEBELUM PAJAK</th>
+                <th id="LabaSblmPajak"></th>
+            </tr>
+            <tr>
+                <td>Pajak Kini</td>
+                <td id="PajakKini"></td>
+            </tr>
+            <tr>
+                <td>Penghasilan Pajak Tangguhan</td>
+                <td id="HasilPajakTangguh"></td>
+            </tr>
+            <tr>
+                <th>LABA SETELAH PAJAK</th>
+                <th id="LabaSetPajak"></th>
+            </tr>
+        </tbody>        
+    </table>
+</div>
+<div id="total"></div>
+
+
+@section scripts
+{
+    <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>
+    <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>
+    @*<script src="~/Scripts/jquery.dataTables-1.12.1.min"></script>*@
+    <script src="~/Scripts/sum()-1.11.2.js"></script>
+    <script src="~/Scripts/dataTables.buttons-2.0.1.min.js"></script>
+    <script src="~/Scripts/jszip-3.1.3.min.js"></script>
+    <script src="~/Scripts/pdfmake-0.1.53.min.js"></script>
+    <script src="~/Scripts/vfs_fonts-0.1.53.js"></script>
+    <script src="~/Scripts/buttons.html5-2.0.1.min.js"></script>
+    <script src="~/Scripts/buttons.print-2.0.1.min.js"></script>
+    <script src="~/Content/bootstrap-multiselect.js"></script>
+    <script src="~/Scripts/dataTables.rowReorder.min.js"></script>
+    <script src="~/Scripts/dataTables.responsive.min.js"></script>
+    <script src="~/Scripts/AASReport/customaas.js"></script>
+    <script src="~/FrontEnd/plugins/select2/js/select2.full.min.js"></script>
+    @*<script src="https://cdn.datatables.net/plug-ins/1.10.19/api/sum().js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>*@
+    @*<script src="https://cdn.datatables.net/1.11.2/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.11.2/js/dataTables.bootstrap4.min.js "></script>*@
+
+    <script>
+      if("@ViewBag.STATUS" == "MONTH" || "@ViewBag.STATUS" == "YEAR" || "@ViewBag.STATUS" == "LASTMONTH"  || "@ViewBag.STATUS" == "LASTYEAR")
+      {
+          var roleid = @Session["RoleId"];
+          var tokenuser = "@Session["Token"]";
+          $(document).ready(function () {
+            $('.select2').select2();
+            var date = new Date();
+		  var firstDayYearNow = getFirstDayYear(date);
+            var fd = new Date(date.getFullYear(), date.getMonth(), 1);
+            var ld = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            var fdLast = getFirstDateLast(fd);
+            date = new Date(fdLast);
+            var ldLast = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            ldLast = getFormattedDate(ldLast);
+            var firstDayYearLast = getFirstDayYear(date);
+
+            if("@ViewBag.STATUS" == "MONTH")
+                var $sdate = getFormattedDate(fd);
+            else if("@ViewBag.STATUS" == "YEAR")
+                var $sdate = firstDayYearNow;//getFirstDayYear(date);
+            else if ("@ViewBag.STATUS" == "LASTMONTH")
+                var $sdate = fdLast;
+            else if ("@ViewBag.STATUS" == "LASTYEAR")
+                var $sdate = firstDayYearLast;
+
+            if ("@ViewBag.STATUS" == "LASTMONTH" ||"@ViewBag.STATUS" == "LASTYEAR")
+                var $edate = ldLast;
+            else
+                var $edate = getFormattedDate(ld);
+
+            var $message = "PERIODE: " + $sdate + " s/d " + $edate + "\n";
+            //$("#tblLabaRugi").dataTable().fnDestroy();
+            $('#divPeriode').html('<b>'+ "Periode: " +$sdate + ' s/d ' + $edate);
+
+            var resDataPer = function () {
+                var dataPer = null;
+                $.ajax({
+                    url: '/master/getsysInfo/?stype=ACC',
+                    dataType: "json",
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    'async': false,
+                    success: function (data) {
+                        dataPer = 'Data Per:' + data[0].datecomplete;
+                        $('#divGetPeriode').html('<b>'+dataPer);
+                    },
+                });
+                return dataPer;
+            }();
+            $message += resDataPer;
+            var $branch = $('#selectbranch :selected').val();
+            //if (roleid<=9)
+            //    $branch = "AS";
+
+            $.ajax({
+                url:'/FinAcc/GetDataLabaRugiPeriode/',
+                data: {'sdate':$sdate,'edate':$edate,'branch':$branch, 'stoken': tokenuser, 'iroleid': roleid},
+                dataType: 'json',
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                'async': false,
+                success: function (data) {
+                    $.each(data.data, function() {
+                        $('#nmcabang').html(this['BranchName']);
+                        $('#NilaiKL').html(number_format(this['KontribusiLansung'],0,'.',','));
+                        $('#NilaiKTL').html(number_format(this['KontribusiTdkLangsung'],0,'.',','));
+                        $('#NilaiKDB').html(number_format(this['KomisiDibayar'],0,'.',','));
+                        var $JumTB = this['KontribusiLansung']+this['KontribusiTdkLangsung']-this['KomisiDibayar'];
+                        $('#JumTB').html(number_format($JumTB,0,'.',','));
+                        $('#NilaiKR').html(number_format(this['KontribusiReasuransi'],0,'.',','));
+                        $('#NilaiURD').html(number_format(this['UjrohReasDiterima'],0,'.',','));
+                        $('#NilaiSOR').html(number_format(this['SurplusOperasiReas'],0,'.',','));
+                        var $JumTR = this['KontribusiReasuransi']+this['UjrohReasDiterima']+this['SurplusOperasiReas'];
+                        $('#JumTR').html(number_format($JumTR,0,'.',','));
+                        $('#KYBMPLalu').html(number_format(this['KYBMPTahunLalu'],0,'.',','));
+                        $('#KYBMPJalan').html(number_format(this['KYBMPTahunBerjalan'],0,'.',','));
+                        var $JumKYBMP = this['KYBMPTahunLalu']-this['KYBMPTahunBerjalan'];
+                        $('#JumKYBMP').html(number_format($JumKYBMP,0,'.',','));
+                        $('#PMPMDLalu').html(number_format(this['PMPMDTahunLalu'],0,'.',','));
+                        $('#PMPMDJalan').html(number_format(this['PMPMDTahunBerjalan'],0,'.',','));
+                        var $JumPMPMD = this['PMPMDTahunLalu']-this['PMPMDTahunBerjalan'];
+                        $('#JumPMPMD').html(number_format($JumPMPMD,0,'.',','));
+                        var $JumCadangan = $JumKYBMP + $JumPMPMD;
+                        $('#JumCadangan').html(number_format($JumCadangan,0,'.',','));
+                        var $JumTabarruNet = $JumTB-$JumTR + $JumCadangan;
+                        $('#JumTabarruNet').html(number_format($JumTabarruNet,0,'.',','));
+                        $('#KlaimBr').html(number_format(this['KlaimBruto'],0,'.',','));
+                        $('#KlaimRe').html(number_format(this['KlaimReas'],0,'.',','));
+                        $('#EKRSJalan').html(number_format(this['EKRSBerjalan'],0,'.',','));
+                        $('#EKRSLalu').html(number_format(this['EKRSLalu'],0,'.',','));
+                        $('#IBNRJalan').html(number_format(this['IBNRBerjalan'],0,'.',','));
+                        $('#IBNRLalu').html(number_format(this['IBNRLalu'],0,'.',','));
+                        var $JumBebanKlaim = this['KlaimBruto']-this['KlaimReas']+this['EKRSBerjalan']+this['IBNRBerjalan']-this['EKRSLalu']-this['IBNRLalu'];
+                        $('#JumBebanKlaim').html(number_format($JumBebanKlaim,0,'.',','));
+                        $('#BebanUndLainNet').html(number_format(this['BebanUndLainNet'],0,'.',','));
+                        var $JumBebanKlaimNet = $JumBebanKlaim + this['BebanUndLainNet'];
+                        $('#JumBebanKlaimNet').html(number_format($JumBebanKlaimNet,0,'.',','));
+                        var $HasilUnd = $JumTabarruNet-$JumBebanKlaimNet;
+                        $('#HasilUnd').html(number_format($HasilUnd,0,'.',','));
+                        $('#HasilInv').html(number_format(this['HasilInvestasi'],0,'.',','));
+                        $('#BebanPem').html(number_format(this['BebanPemasaran'],0,'.',','));
+                        $('#BebanUPeg').html(number_format(this['BebanUmumPegawai'],0,'.',','));
+                        $('#BebanAdm').html(number_format(this['BebanAdministrasi'],0,'.',','));
+                        var $JumBebanUsh = this['BebanPemasaran']+this['BebanUmumPegawai']+this['BebanAdministrasi'];
+                        $('#JumBebanUsh').html(number_format($JumBebanUsh,0,'.',','));
+                        $('#JumUjrah').html(number_format(this['PenyisihanUjroh'],0,'.',','));
+                        $('#HasilBebanLain').html(number_format(this['HasilBebanLain'],0,'.',','));
+                        $('#AlSurplusPeserta').html(number_format(this['AlokasiPeserta'],0,'.',','));
+                        $('#AlSurplusDanaTab').html(number_format(this['AlokasiTabarru'],0,'.',','));
+                        $('#LabaSebelumZakat').html(number_format(this['LabaSebelumZakat'],0,'.',','));
+                        var $zakat = this['LabaSebelumZakat'] * (2.5/100);
+                        $('#zakat').html(number_format($zakat,0,'.',','));
+                        $('#LabaSblmPajak').html(number_format(this['LabaSebelumPajak'],0,'.',','));
+                        $('#PajakKini').html(number_format(this['PajakKini'],0,'.',','));
+                        $('#HasilPajakTangguh').html(number_format(this['PajakTangguhan'],0,'.',','));
+                        $('#LabaSetPajak').html(number_format(this['LabaSetelahPajak'],0,'.',','));
+                    });
+                },
+            });
+            $('#selectbranch').on("change", function(e) {
+                $branch = $('#selectbranch :selected').val();
+                //alert($branch);
+                $('#nmcabang').html('');
+                $.ajax({
+                url:'/FinAcc/GetDataLabaRugiPeriode/',
+                data: {'sdate':$sdate,'edate':$edate,'branch':$branch},
+                dataType: 'json',
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                'async': false,
+                success: function (data) {
+                        $.each(data.data, function() {
+                            if((this['Branch']!='AS' && data.recordsTotal>1) || (this['Branch']=='AS' && data.recordsTotal==1))
+                            {
+                                $('#nmcabang').html(this['BranchName']);
+                                $('#NilaiKL').html(number_format(this['KontribusiLansung'],0,'.',','));
+                                $('#NilaiKTL').html(number_format(this['KontribusiTdkLangsung'],0,'.',','));
+                                $('#NilaiKDB').html(number_format(this['KomisiDibayar'],0,'.',','));
+                                var $JumTB = this['KontribusiLansung']+this['KontribusiTdkLangsung']-this['KomisiDibayar'];
+                                $('#JumTB').html(number_format($JumTB,0,'.',','));
+                                $('#NilaiKR').html(number_format(this['KontribusiReasuransi'],0,'.',','));
+                                $('#NilaiURD').html(number_format(this['UjrohReasDiterima'],0,'.',','));
+                                $('#NilaiSOR').html(number_format(this['SurplusOperasiReas'],0,'.',','));
+                                var $JumTR = this['KontribusiReasuransi']+this['UjrohReasDiterima']+this['SurplusOperasiReas'];
+                                $('#JumTR').html(number_format($JumTR,0,'.',','));
+                                $('#KYBMPLalu').html(number_format(this['KYBMPTahunLalu'],0,'.',','));
+                                $('#KYBMPJalan').html(number_format(this['KYBMPTahunBerjalan'],0,'.',','));
+                                var $JumKYBMP = this['KYBMPTahunLalu']-this['KYBMPTahunBerjalan'];
+                                $('#JumKYBMP').html(number_format($JumKYBMP,0,'.',','));
+                                $('#PMPMDLalu').html(number_format(this['PMPMDTahunLalu'],0,'.',','));
+                                $('#PMPMDJalan').html(number_format(this['PMPMDTahunBerjalan'],0,'.',','));
+                                var $JumPMPMD = this['PMPMDTahunLalu']-this['PMPMDTahunBerjalan'];
+                                $('#JumPMPMD').html(number_format($JumPMPMD,0,'.',','));
+                                var $JumCadangan = $JumKYBMP + $JumPMPMD;
+                                $('#JumCadangan').html(number_format($JumCadangan,0,'.',','));
+                                var $JumTabarruNet = $JumTB-$JumTR + $JumCadangan;
+                                $('#JumTabarruNet').html(number_format($JumTabarruNet,0,'.',','));
+                                $('#KlaimBr').html(number_format(this['KlaimBruto'],0,'.',','));
+                                $('#KlaimRe').html(number_format(this['KlaimReas'],0,'.',','));
+                                $('#EKRSJalan').html(number_format(this['EKRSBerjalan'],0,'.',','));
+                                $('#EKRSLalu').html(number_format(this['EKRSLalu'],0,'.',','));
+                                $('#IBNRJalan').html(number_format(this['IBNRBerjalan'],0,'.',','));
+                                $('#IBNRLalu').html(number_format(this['IBNRLalu'],0,'.',','));
+                                var $JumBebanKlaim = this['KlaimBruto']-this['KlaimReas']+this['EKRSBerjalan']+this['IBNRBerjalan']-this['EKRSLalu']-this['IBNRLalu'];
+                                $('#JumBebanKlaim').html(number_format($JumBebanKlaim,0,'.',','));
+                                $('#BebanUndLainNet').html(number_format(this['BebanUndLainNet'],0,'.',','));
+                                var $JumBebanKlaimNet = $JumBebanKlaim + this['BebanUndLainNet'];
+                                $('#JumBebanKlaimNet').html(number_format($JumBebanKlaimNet,0,'.',','));
+                                var $HasilUnd = $JumTabarruNet-$JumBebanKlaimNet;
+                                $('#HasilUnd').html(number_format($HasilUnd,0,'.',','));
+                                $('#HasilInv').html(number_format(this['HasilInvestasi'],0,'.',','));
+                                $('#BebanPem').html(number_format(this['BebanPemasaran'],0,'.',','));
+                                $('#BebanUPeg').html(number_format(this['BebanUmumPegawai'],0,'.',','));
+                                $('#BebanAdm').html(number_format(this['BebanAdministrasi'],0,'.',','));
+                                var $JumBebanUsh = this['BebanPemasaran']+this['BebanUmumPegawai']+this['BebanAdministrasi'];
+                                $('#JumBebanUsh').html(number_format($JumBebanUsh,0,'.',','));
+                                $('#JumUjrah').html(number_format(this['PenyisihanUjroh'],0,'.',','));
+                                $('#HasilBebanLain').html(number_format(this['HasilBebanLain'],0,'.',','));
+                                $('#AlSurplusPeserta').html(number_format(this['AlokasiPeserta'],0,'.',','));
+                                $('#AlSurplusDanaTab').html(number_format(this['AlokasiTabarru'],0,'.',','));
+                                $('#LabaSebelumZakat').html(number_format(this['LabaSebelumZakat'],0,'.',','));
+                                var $zakat = this['LabaSebelumZakat'] * (2.5/100);
+                                $('#zakat').html(number_format($zakat,0,'.',','));
+                                $('#LabaSblmPajak').html(number_format(this['LabaSebelumPajak'],0,'.',','));
+                                $('#PajakKini').html(number_format(this['PajakKini'],0,'.',','));
+                                $('#HasilPajakTangguh').html(number_format(this['PajakTangguhan'],0,'.',','));
+                                $('#LabaSetPajak').html(number_format(this['LabaSetelahPajak'],0,'.',','));
+                            }
+                        });
+                    },
+                });
+            });
+            //$('#tblLabaRugi').append('<caption style="caption-side: bottom">A fictional company\'s staff table.</caption>');
+            //$('#tblLabaRugi').append('<caption style="caption-side: top">Periode: '+ $sdate + ' s/d ' + $edate +'</caption>');
+            var token = $('[name=__RequestVerificationToken]').val();
+            var table = $('#tblLabaRugi').DataTable({
+                "fnRowCallback": function () {
+
+                },
+                //"dom": 'Bfrtip',
+                //"dom": "l<t>Bfrtip",
+                "dom": "<'row'<'col-sm-6'l>>" +
+                    "<'row'<'col-sm-6'B><'col-sm-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+             //"dom": '<"top"fl>rBt<"bottom"ip><"clear">',
+             //   "buttons": [
+             //       'copy', 'csv', 'excel', 'pdf', 'print'
+                buttons: [
+                    'copy',
+                    {
+                        extend: 'excel',
+                        messageTop: $message,
+                        footer: true
+                    },
+                    {
+                        extend: 'pdf',
+                        messageTop: $message,
+                        footer: true
+                        //messageBottom: null
+                    },
+                    {
+                        extend: 'print',
+                        messageTop: $message,
+                        footer: true,
+                    }
+                ],
+                /*rowReorder: {
+                    selector: 'td:nth-child(2)'
+                },*/
+                paging: false,
+                "columnDefs":[
+                    {"targets":[1],"className":'dt-right'},
+                    {"targets":[0,1],"orderable":false}
+                ],
+                //"columnDefs":[{
+                //    "targets":[1],
+                //    "className":'dt-right',
+                //}],
+                "bInfo":false,
+                "bSort":false,
+
+                    /*"columnDefs":[{
+                        "render": function (data, type, row) {
+                            return commaSeparateNumber(data);
+                        },
+                    "targets": [2]
+                    },]*/
+            });
+        });
+      }
+      else
+      {
+            alert ("Status Not Found");
+      }
+    </script>
+}
