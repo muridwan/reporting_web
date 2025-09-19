@@ -62,5 +62,9 @@ namespace reporting_web.Models
       public double Persentase { get; set; }   
       public double JUM_KLAIM { get; set; } 
       public string Kat_Jarak_Baru_Sd_Klaim { get; set; }
+      public double KlaimGross { get; set; }
+      public double Subro { get; set; }
+      public double PersenRecovery { get; set; }
+
     }
 }
