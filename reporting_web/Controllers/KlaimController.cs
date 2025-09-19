@@ -75,14 +75,7 @@ namespace reporting_web.Controllers
                     ViewBag.BranchCode = result.Select(x => new SelectListItem { Text = x.Name, Value = x.Branch1.ToString() });
                 }
             }
-            using (DataBranch db = new DataBranch())
-            {
-                var result = (from BranchList in db.Branches select BranchList).ToList();
-                if (result != null)
-                {
-                    ViewBag.BranchCode = result.Select(x => new SelectListItem { Text = x.Name, Value = x.Branch1.ToString() });
-                }
-            }
+            
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();

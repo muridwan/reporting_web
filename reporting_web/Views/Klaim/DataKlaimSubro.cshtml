@@ -97,7 +97,7 @@
                                 {
                                     if (item.Text != null)
                                     {
-                                        <option value="@item.Value">
+                                        <option value="@item.Text">
                                             (@item.Value) @item.Text
                                         </option>
                                     }
@@ -153,12 +153,12 @@
         <thead>
             <tr>
                 <th width="2%">No</th>
-                <th width="20%">Nama Cabang</th>
-                <th>TOC</th>
-                <th>Deskripsi TOC</th>
-                <th>Klaim</th>
-                <th>Subro</th>
-                <th>Persentase</th>
+                <th width="40%">Nama Cabang</th>
+                <th with ="10%">TOC</th>
+                <th width="20%">Deskripsi TOC</th>
+                <th width="10%">Klaim</th>
+                <th width="10%">Subro</th>
+                <th width="18%">Persentase</th>
             </tr>
         </thead>
         <tfoot>
@@ -402,11 +402,15 @@
 
                 var sumpersen = $('#tblpersenklaimcbg').DataTable().column(5).data().sum();
 
+                var sumpersen2 = sumpersen / sum * 100;
+
                 $('#totalft').html(number_format(sum,2,'.',','));
-                $('#subroft').html(number_format(sumpersen,2,'.',','));
+                $('#subroft').html(number_format(sumpersen, 2, '.', ','));
+                $('#persenft').html(number_format(sumpersen2, 2, '.', ','));
+
             },
             "columns": [
-                { "data": "PersenRecovery"},
+                { "data": "SortNo"},
                 { "data": "BRANCH_DESCRIPTION" },
                 { "data": "TOC" },
                 { "data": "TOC_DESC" },
