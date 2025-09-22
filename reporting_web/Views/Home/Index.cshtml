@@ -60,9 +60,24 @@
             <!-- ./col -->
             <div class="col-lg-6 col-12">
                 <!-- small box -->
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <div id="desPriodeSubro"><p>Subrogasi Periode:</p></div>
+                        <div id="jumSubro" class="h3"><div id="spinJumSubro">Loading...</div></div>
+                        <div id="desSubro"><p>New Subrogasi</p></div>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-person-add"></i>
+                    </div>
+                    <a href="~/klaim/ViewMoreKlaim?status=MONTH" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <!-- ./col -->
+            <div class="col-lg-6 col-12">
+                <!-- small box -->
                 <div class="small-box bg-primary">
                     <div class="inner">
-                        <div id="desPriodeYear"><p>Kontribusi Periode:</p></div>    
+                        <div id="desPriodeYear"><p>Kontribusi Periode:</p></div>
                         <div id="jumProdThisYear" class="h3"><div id="spinJumProdThisYear">Loading...</div></div>
                         <div id="desProdThisYear"><p>New Kontribusi</p></div>
                     </div>
@@ -80,6 +95,21 @@
                         <div id="desPriodeKlaimYear"><p>Klaim Periode:</p></div>
                         <div id="jumKlaimThisYear" class="h3"><div id="spinJumKlaimThisYear">Loading...</div></div>
                         <div id="desKlaimThisYear"><p>New Klaim</p></div>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-pie-graph"></i>
+                    </div>
+                    <a href="~/klaim/ViewMoreKlaim?status=YEAR" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <!-- ./col -->
+            <div class="col-lg-6 col-12">
+                <!-- small box -->
+                <div class="small-box small-box bg-danger">
+                    <div class="inner">
+                        <div id="desPriodeSubroYear"><p>Subrogasi Periode:</p></div>
+                        <div id="jumSubroThisYear" class="h3"><div id="spinJumSubroThisYear">Loading...</div></div>
+                        <div id="desSubroThisYear"><p>New Subrogasi</p></div>
                     </div>
                     <div class="icon">
                         <i class="ion ion-pie-graph"></i>
@@ -177,6 +207,20 @@
                     <a href="~/klaim/ViewMoreKlaim?status=LASTMONTH" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
+            <div class="col-lg-6 col-12">
+                <!-- small box -->
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <div id="desPriodeSubroLast"><p>Subrogasi Periode:</p></div>
+                        <div id="jumSubroLast" class="h3"><div id="spinJumSubroLast">Loading...</div></div>
+                        <div id="desSubroLast"><p>New Subrogasi</p></div>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-person-add"></i>
+                    </div>
+                    <a href="~/klaim/ViewMoreKlaim?status=LASTMONTH" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
             <!-- ./col -->
             <div class="col-lg-6 col-12">
                 <!-- small box -->
@@ -200,6 +244,21 @@
                         <div id="desPriodeKlaimYearLast"><p>Klaim Periode:</p></div>
                         <div id="jumKlaimThisYearLast" class="h3"><div id="spinJumKlaimThisYearLast">Loading...</div></div>
                         <div id="desKlaimThisYearLast"><p>New Klaim</p></div>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-pie-graph"></i>
+                    </div>
+                    <a href="~/klaim/ViewMoreKlaim?status=LASTYEAR" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <!-- ./col -->
+            <div class="col-lg-6 col-12">
+                <!-- small box -->
+                <div class="small-box small-box bg-danger">
+                    <div class="inner">
+                        <div id="desPriodeSubroYearLast"><p>Subrogasi Periode:</p></div>
+                        <div id="jumSubroThisYearLast" class="h3"><div id="spinJumSubroThisYearLast">Loading...</div></div>
+                        <div id="desSubroThisYearLast"><p>New Subrogasi</p></div>
                     </div>
                     <div class="icon">
                         <i class="ion ion-pie-graph"></i>
@@ -308,10 +367,12 @@
                 beforeSend: function(){
                                 $('#spinJumProd').show();
                                 $('#spinJumKlaim').show();
+                                $('#spinJumSubro').show();
                             },
                 complete: function(){
                                 $('#spinJumProd').hide();
                                 $('#spinJumKlaim').hide();
+                                $('#spinJumSubro').hide();
                           },
                 dataType: 'json',
                 type: 'GET',
@@ -319,7 +380,8 @@
                 success: function (data) {
                     $.each(data.data, function() {
                         $('#jumProd').html(number_format(this['Kontribusi'],2,'.',','));
-                        $('#jumKlaim').html(number_format(this['Klaim'],2,'.',','));
+                        $('#jumKlaim').html(number_format(this['Klaim'], 2, '.', ','));
+                        $('#jumSubro').html(number_format(this['Subrogasi'], 2, '.', ','));
                     });
                 },
             });
@@ -329,10 +391,12 @@
                 beforeSend: function(){
                                 $('#spinJumProdThisYear').show();
                                 $('#spinJumKlaimThisYear').show();
+                                $('#spinJumSubroThisYear').show();
                             },
                 complete: function(){
                                 $('#spinJumProdThisYear').hide();
                                 $('#spinJumKlaimThisYear').hide();
+                                $('#spinJumSubroThisYear').hide();
                           },
                 dataType: 'json',
                 type: 'GET',
@@ -346,7 +410,8 @@
                             $('#jumProdThisYear').html(number_format(this['Kontribusi'],2,'.',',')+'<br>(' + number_format($senRKAPKontrib,2,'.',',') +'% RKAP)');
                         else
                             $('#jumProdThisYear').html(number_format(this['Kontribusi'],2,'.',',')+'<br>(' + number_format($senGSKontrib,2,'.',',') +'% GS)');
-                        $('#jumKlaimThisYear').html(number_format(this['Klaim'],2,'.',',')+'<br>('+number_format($senRKAPKlaim,2,'.',',') + '% RKAP)');
+                        $('#jumKlaimThisYear').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
+                        $('#jumSubroThisYear').html(number_format(this['Subrogasi'], 2, '.', ','));
                     });
                 },
             });
@@ -413,10 +478,12 @@
                 beforeSend: function(){
                                 $('#spinJumProdLast').show();
                                 $('#spinJumKlaimLast').show();
+                                $('#spinJumSubroLast').show();
                             },
                 complete: function(){
                                 $('#spinJumProdLast').hide();
-                                $('#spinJumKlaimLast').show();
+                                $('#spinJumKlaimLast').hide();
+                                $('#spinJumSubroLast').hide();
                           },
                 dataType: 'json',
                 type: 'GET',
@@ -424,7 +491,8 @@
                 success: function (data) {
                     $.each(data.data, function() {
                         $('#jumProdLast').html(number_format(this['Kontribusi'],2,'.',','));
-                        $('#jumKlaimLast').html(number_format(this['Klaim'],2,'.',','));
+                        $('#jumKlaimLast').html(number_format(this['Klaim'], 2, '.', ','));
+                        $('#jumSubroLast').html(number_format(this['Subrogasi'], 2, '.', ','));
                     });
                 },
             });
@@ -434,10 +502,12 @@
                 beforeSend: function(){
                                 $('#spinJumProdThisYearLast').show();
                                 $('#spinJumKlaimThisYearLast').show();
+                                $('#spinJumSubroThisYearLast').show();
                             },
                 complete: function(){
                                 $('#spinJumProdThisYearLast').hide();
                                 $('#spinJumKlaimThisYearLast').hide();
+                                $('#spinJumSubroThisYearLast').hide();
                           },
                 dataType: 'json',
                 type: 'GET',
@@ -451,7 +521,8 @@
                             $('#jumProdThisYearLast').html(number_format(this['Kontribusi'],2,'.',',')+'<br>('+number_format($senRKAPKontrib,2,'.',',')+'% RKAP)');
                         else
                             $('#jumProdThisYearLast').html(number_format(this['Kontribusi'],2,'.',',')+'<br>(' + number_format($senGSKontrib,2,'.',',') +'% GS)');                        
-                        $('#jumKlaimThisYearLast').html(number_format(this['Klaim'],2,'.',',')+'<br>('+number_format($senRKAPKlaim,2,'.',',')+'% RKAP)');
+                        $('#jumKlaimThisYearLast').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
+                        $('#jumSubroThisYearLast').html(number_format(this['Subrogasi'], 2, '.', ','));
                     });
                 },
             });
@@ -544,14 +615,24 @@
                     var dataPer = 'Klaim Periode : <br>' + viewFirstDay + ' sd ' + viewLastDay;
                     //var dataPerLast = 'Klaim Periode : ' + monthYearLast + '<br> Data Update Per:' + data[0].datecomplete;
                     var dataPerLast = 'Klaim Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
+                    var dataSubroPer = 'Subrogasi Periode: <br>' + viewFirstDay + ' sd ' + viewLastDay;
+                    
                     $('#desPriodeKlaim').html(dataPer);
+                    $('#desPriodeSubro').html(dataSubroPer);
                     $('#desKlaim').html('Data Update Per:' + data[0].datecomplete);
+                    $('#desSubro').html('Data Update Per:' + data[0].datecomplete);
                     $('#desPriodeKlaimLast').html(dataPerLast);
+                    $('#desPriodeSubroLast').html(dataPerLast);
                     $('#desKlaimLast').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriodeKlaimYear').html('Klaim Periode : <br>'+ viewFirstDayYear + ' sd ' + viewLastDay);
+                    $('#desSubroLast').html('Data Update Per:' + data[0].datecomplete);
+                    $('#desPriodeKlaimYear').html('Klaim Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
+                    $('#desPriodeSubroYear').html('Subrogasi Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
                     $('#desKlaimThisYear').html('Data Update Per:' + data[0].datecomplete);
+                    $('#desSubroThisYear').html('Data Update Per:' + data[0].datecomplete);
                     $('#desPriodeKlaimYearLast').html('Klaim Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
+                    $('#desPriodeSubroYearLast').html('Subrogasi Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
                     $('#desKlaimThisYearLast').html('Data Update Per:' + data[0].datecomplete);
+                    $('#desSubroThisYearLast').html('Data Update Per:' + data[0].datecomplete);
                 },
             });
             $.ajax({

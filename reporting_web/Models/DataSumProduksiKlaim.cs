@@ -9,6 +9,7 @@ namespace reporting_web.Models
     {
         public double Kontribusi { get; set; }
         public double Klaim { get; set; }
+        public double Subrogasi { get; set; }
         public double RKAPKontribusi { get; set; }
         public double RKAPKlaimBruto { get; set; }
         public double GSKontribusi { get; set; }
