@@ -170,6 +170,15 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKlaimCOL()
         {
+            using (DataBranch db = new DataBranch())
+            {
+                var result = (from BranchList in db.Branches select BranchList).ToList();
+                if (result != null)
+                {
+                    ViewBag.BranchCode = result.Select(x => new SelectListItem { Text = x.Name, Value = x.Branch1.ToString() });
+                }
+            }
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -718,6 +727,8 @@ namespace reporting_web.Controllers
 
                 if (TypeReport == "PERSENKLAIMSUBRO")
                     spName = "spGetPersenKlaimSubroCbg";
+                else if (TypeReport == "PERSENKLAIMCOL")
+                    spName = "spGetPersenKlaimCOL";
                 var list = GetDataPersenKlaim2(SDate, EDate, spName, COB, TOC, Branch, ListTOC, ListBranch, stoken, iroleid); // list of records to be displayed in datatable
                 return Json(new
                 {

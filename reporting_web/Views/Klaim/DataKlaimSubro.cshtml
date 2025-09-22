@@ -385,7 +385,7 @@
         $("#tblpersenklaimcbg").dataTable().fnDestroy();
         var table = $('#tblpersenklaimcbg').DataTable({
             "ajax": {
-                "url": '/Klaim/GetDataKlaimDate2?SDate=' + $sdate + "&EDate=" + $edate +"&TypeReport=PERSENKLAIMSUBRO&ListTOC="+$listTOC+"&ListBranch="+$listCab+"&COB="+$cobid+"&TOC="+$tocid+"&Branch="+$kodecab,
+              "url": '/Klaim/GetDataKlaimDate2?SDate=' + $sdate + "&EDate=" + $edate +"&TypeReport=PERSENKLAIMSUBRO&ListTOC="+$listTOC+"&ListBranch="+$listCab+"&COB="+$cobid+"&TOC="+$tocid+"&Branch="+$kodecab,
               "processing":true,
               "serverSide":true,
               "type": "POST", // ajax type must be match to controllers action type
