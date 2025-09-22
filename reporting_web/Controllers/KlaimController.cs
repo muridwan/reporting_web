@@ -409,6 +409,30 @@ namespace reporting_web.Controllers
 
             return View();
         }
+        public ActionResult ViewMoreSubrogasi(string status)
+        {
+            ViewBag.STATUS = status;
+            VerifiyToken menu = new VerifiyToken();
+            long idrole = Int64.Parse(Session["RoleId"].ToString());
+            if (idrole == 1)
+            {
+                ViewBag.MenuParent = menu.getMenuParent();
+                ViewBag.SubMenu1 = menu.getSubMenu1();
+                ViewBag.SubMenu2 = menu.getSubMenu2();
+            }
+            else
+            {
+                ViewBag.MenuParent = menu.getMenuParent(idrole);
+                ViewBag.SubMenu1 = menu.getSubMenu1(idrole);
+                ViewBag.SubMenu2 = menu.getSubMenu2(idrole);
+            }
+            string CurrentURL = Request.Url.AbsoluteUri;
+            string filename = System.IO.Path.GetFileNameWithoutExtension(CurrentURL);
+
+            ViewBag.AksesUser = menu.getAccessMenu(filename, idrole);
+
+            return View();
+        }
         public ActionResult ViewMoreKlaimCOB(string status, string kdcbg)
         {
             ViewBag.STATUS = status;
@@ -736,7 +760,7 @@ namespace reporting_web.Controllers
                 else if (TypeReport == "PERSENKLAIMCOB")
                     spName = "spGetPersenKlaimCob";
                 else if (TypeReport == "PERSENKLAIMSUBRO")
-                    spName = "spGetPersenKlaimSubroCbg";
+                    spName = "spGetPersenSubroCbg";
                 var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
                 return Json(new
                 {

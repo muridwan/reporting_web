@@ -60,7 +60,7 @@
             <!-- ./col -->
             <div class="col-lg-6 col-12">
                 <!-- small box -->
-                <div class="small-box bg-warning">
+                <div class="small-box bg-info">
                     <div class="inner">
                         <div id="desPriodeSubro"><p>Subrogasi Periode:</p></div>
                         <div id="jumSubro" class="h3"><div id="spinJumSubro">Loading...</div></div>
@@ -69,7 +69,7 @@
                     <div class="icon">
                         <i class="ion ion-person-add"></i>
                     </div>
-                    <a href="~/klaim/ViewMoreKlaim?status=MONTH" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    <a href="~/klaim/ViewMoreSubrogasi?status=MONTH" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
             <!-- ./col -->
@@ -105,7 +105,7 @@
             <!-- ./col -->
             <div class="col-lg-6 col-12">
                 <!-- small box -->
-                <div class="small-box small-box bg-danger">
+                <div class="small-box small-box bg-primary">
                     <div class="inner">
                         <div id="desPriodeSubroYear"><p>Subrogasi Periode:</p></div>
                         <div id="jumSubroThisYear" class="h3"><div id="spinJumSubroThisYear">Loading...</div></div>
@@ -114,7 +114,7 @@
                     <div class="icon">
                         <i class="ion ion-pie-graph"></i>
                     </div>
-                    <a href="~/klaim/ViewMoreKlaim?status=YEAR" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    <a href="~/klaim/ViewMoreSubrogasi?status=YEAR" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
             <!-- ./col -->
@@ -209,7 +209,7 @@
             </div>
             <div class="col-lg-6 col-12">
                 <!-- small box -->
-                <div class="small-box bg-warning">
+                <div class="small-box bg-info">
                     <div class="inner">
                         <div id="desPriodeSubroLast"><p>Subrogasi Periode:</p></div>
                         <div id="jumSubroLast" class="h3"><div id="spinJumSubroLast">Loading...</div></div>
@@ -218,7 +218,7 @@
                     <div class="icon">
                         <i class="ion ion-person-add"></i>
                     </div>
-                    <a href="~/klaim/ViewMoreKlaim?status=LASTMONTH" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    <a href="~/klaim/ViewMoreSubrogasi?status=LASTMONTH" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
             <!-- ./col -->
@@ -254,7 +254,7 @@
             <!-- ./col -->
             <div class="col-lg-6 col-12">
                 <!-- small box -->
-                <div class="small-box small-box bg-danger">
+                <div class="small-box small-box bg-primary">
                     <div class="inner">
                         <div id="desPriodeSubroYearLast"><p>Subrogasi Periode:</p></div>
                         <div id="jumSubroThisYearLast" class="h3"><div id="spinJumSubroThisYearLast">Loading...</div></div>
@@ -263,7 +263,7 @@
                     <div class="icon">
                         <i class="ion ion-pie-graph"></i>
                     </div>
-                    <a href="~/klaim/ViewMoreKlaim?status=LASTYEAR" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    <a href="~/klaim/ViewMoreSubrogasi?status=LASTYEAR" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
             <!-- ./col -->
@@ -616,13 +616,14 @@
                     //var dataPerLast = 'Klaim Periode : ' + monthYearLast + '<br> Data Update Per:' + data[0].datecomplete;
                     var dataPerLast = 'Klaim Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
                     var dataSubroPer = 'Subrogasi Periode: <br>' + viewFirstDay + ' sd ' + viewLastDay;
+                    var dataSubroPerLast = 'Subrogasi Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
                     
                     $('#desPriodeKlaim').html(dataPer);
                     $('#desPriodeSubro').html(dataSubroPer);
                     $('#desKlaim').html('Data Update Per:' + data[0].datecomplete);
                     $('#desSubro').html('Data Update Per:' + data[0].datecomplete);
                     $('#desPriodeKlaimLast').html(dataPerLast);
-                    $('#desPriodeSubroLast').html(dataPerLast);
+                    $('#desPriodeSubroLast').html(dataSubroPerLast);
                     $('#desKlaimLast').html('Data Update Per:' + data[0].datecomplete);
                     $('#desSubroLast').html('Data Update Per:' + data[0].datecomplete);
                     $('#desPriodeKlaimYear').html('Klaim Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);

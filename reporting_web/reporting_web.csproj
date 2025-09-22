@@ -3576,6 +3576,7 @@
     <Content Include="Views\Klaim\ViewMoreKlaimCOB.cshtml" />
     <Content Include="Views\Produksi\ViewMoreKontribusiMkt.cshtml" />
     <Content Include="Views\Klaim\DataKlaimSubro.cshtml" />
+    <Content Include="Views\Klaim\ViewMoreSubrogasi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
