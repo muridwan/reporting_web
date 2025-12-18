@@ -1,0 +1,48 @@
+﻿    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(255,255,255,0.75);
+        z-index: 20000;
+        display: none;
+    }
+
+    #loadingOverlay.show {
+        display: block;
+    }
+
+    /* CENTER ABSOLUTE – PALING AMAN */
+    #loadingOverlay .loading-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* SPINNER */
+    #loadingOverlay .spinner {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #e0e0e0;
+        border-top: 5px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    #loadingOverlay .loading-text {
+        margin-top: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }

@@ -1402,6 +1402,7 @@
     <Content Include="Content\dataTables.fontAwesome-1.11.2.css" />
     <Content Include="Content\demo-loading.css" />
     <Content Include="Content\jquery.dataTables-1.11.2.min.css" />
+    <Content Include="Content\loading.css" />
     <Content Include="Content\responsive.dataTables.min.css" />
     <Content Include="Content\rowReorder.dataTables.min.css" />
     <Content Include="Content\select2.css" />

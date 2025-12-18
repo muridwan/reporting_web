@@ -62,7 +62,7 @@ namespace reporting_web.Controllers
             ViewBag.AksesUser = menu.getAccessMenu(filename, idrole);
 
             return View();
-        }        
+        }
         public ActionResult ViewLossRatioCbg()
         {
             VerifiyToken menu = new VerifiyToken();
@@ -79,6 +79,14 @@ namespace reporting_web.Controllers
                 ViewBag.SubMenu1 = menu.getSubMenu1(idrole);
                 ViewBag.SubMenu2 = menu.getSubMenu2(idrole);
             }
+            using (DataTOC db = new DataTOC())
+            {
+                var result = (from TOCList in db.TOCs select TOCList).ToList();
+                if (result != null)
+                {
+                    ViewBag.COBID = result.Select(x => new SelectListItem { Text = x.DESCRIPTION, Value = x.TOC1.ToString() });
+                }
+            }            
             string CurrentURL = Request.Url.AbsoluteUri;
             string filename = System.IO.Path.GetFileNameWithoutExtension(CurrentURL);
 
@@ -185,6 +193,56 @@ namespace reporting_web.Controllers
 
         }
 
+        public List<DataLR> GetDataLR2(string SDate, string EDate, string spName, string COB, string TOC, List<string> ListTOC, string token = "", int roleid = 0)
+        {
+            string[] listTOC = ListTOC[0].Split(new string[] { "," }, StringSplitOptions.None);
+            DataTable tvp = new DataTable();
+            tvp.Columns.Add(new DataColumn("TOC", typeof(String)));
+            // populate DataTable from your List here
+            foreach (var idtoc in listTOC)
+                tvp.Rows.Add(idtoc);
+
+            string constr = ConfigurationManager.ConnectionStrings["SqlDBDRC"].ConnectionString;
+            try
+            {
+                DataTable dt = new DataTable();
+
+                SqlConnection con = new SqlConnection(constr);
+                SqlCommand cmd = new SqlCommand();
+                cmd.Connection = con;
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.CommandText = spName;
+                cmd.Parameters.Add("@SDate", SqlDbType.DateTime).Value = DateTime.Parse(SDate);
+                cmd.Parameters.Add("@EDate", SqlDbType.DateTime).Value = DateTime.Parse(EDate);
+                cmd.Parameters.Add("@COB", SqlDbType.VarChar).Value = COB;
+                cmd.Parameters.Add("@TOC", SqlDbType.VarChar).Value = TOC;
+                cmd.Parameters.Add("@ListTOC", SqlDbType.Structured);
+                cmd.Parameters["@ListTOC"].Direction = ParameterDirection.Input;
+                cmd.Parameters["@ListTOC"].TypeName = "dbo.toc_list_tbltype";
+                cmd.Parameters["@ListTOC"].Value = tvp;
+                cmd.CommandTimeout = 1200000;
+                if (token != "")
+                {
+                    cmd.Parameters.Add("@Token", SqlDbType.VarChar).Value = token;
+                }
+                if (roleid != 0)
+                {
+                    cmd.Parameters.Add("@RoleId", SqlDbType.VarChar).Value = roleid;
+                }
+                SqlDataAdapter adpt = new SqlDataAdapter(cmd);
+                adpt.Fill(dt);
+                var list = ConvertDataTableToList<DataLR>(dt);
+                return list;
+            }
+            catch (SqlException ex)
+            {
+
+                DisplaySqlErrors(ex);
+                return null;
+            }
+
+        }
+
         public JsonResult GetDataLRJson(string SDate, string EDate, string TypeReport)
         {
             if (TypeReport != "")
@@ -208,8 +266,31 @@ namespace reporting_web.Controllers
                 return null;
             }
         }
+        public JsonResult GetDataLRJson2(string SDate, string EDate, string TypeReport, List<string> ListTOC, string COB = "%", string TOC = "%", string stoken = "", int iroleid = 0)
+        {
+            if (TypeReport != "")
+            {
+                string spName = "";
 
+                if (TypeReport == "LOSSRATIO")
+                    spName = "spGetLossRatio";
+                else if (TypeReport == "LOSSRATIOCBG")
+                    spName = "spGetLossRatioCbg2";
+                var list = GetDataLR2(SDate, EDate, spName,COB,TOC,ListTOC); // list of records to be displayed in datatable
+                return Json(new
+                {
+                    data = list,
+                    recordsTotal = list.Count,
+                    recordsFiltered = 0
+                }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
+        
 
     public static class SqlExtensionsForLR
     {
