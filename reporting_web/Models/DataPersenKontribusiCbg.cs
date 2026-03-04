@@ -13,8 +13,12 @@ namespace reporting_web.Models
         public double Kontribusi { get; set; }
         public double Persentasi { get; set; }
         public double NilaiRKAP { get; set; }
+        public double NilaiRKAPBulan { get; set; }
         public double NilaiGS { get; set; }
+        public double NilaiGSBulan { get; set; }
         public double PersenRKAP { get; set; }
+        public double PersenRKAPBulan { get; set; }
         public double PersenGS { get; set; }
+        public double PersenGSBulan { get; set; }
     }
 }

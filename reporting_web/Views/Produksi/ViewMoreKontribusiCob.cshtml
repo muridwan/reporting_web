@@ -54,6 +54,10 @@
                 <th>Deskripsi COB</th>
                 <th>Kontribusi</th>
                 <th>Persentase</th>
+                <th>RKAP</th>
+                <th>GS</th>
+                <th>PctRKAP</th>
+                <th>PctGS</th>
             </tr>
         </thead>
         <tfoot>
@@ -69,6 +73,10 @@
                 <th>Total</th>
                 <th id="totalft" align="right"></th>
                 <th id="persenft" align="right"></th>
+                <th id="totalrkap" align="right"></th>
+                <th id="totalgs" align="right"></th>
+                <th id="persenrkap" align="right"></th>
+                <th id="persengs" align="right"></th>
             </tr>
         </tfoot>
     </table>
@@ -207,6 +215,10 @@
                      { "data": "Description" },
                      { "data": "Kontribusi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right"},
                      { "data": "Persentasi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "NRKAP", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "NGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "PctNRKAP", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "PctNGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
                 ],
                 //"dom": 'Bfrtip',
                 //"dom": "l<t>Bfrtip",

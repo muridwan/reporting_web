@@ -13,6 +13,8 @@ namespace reporting_web.Models
         public double RKAPKontribusi { get; set; }
         public double RKAPKlaimBruto { get; set; }
         public double GSKontribusi { get; set; }
+        public double RKAPBulan { get; set; }
+        public double GSBulan { get; set; }
 
     }
 }

@@ -12,6 +12,10 @@ namespace reporting_web.Models
         public string Description { get; set; }
         public double Kontribusi { get; set; }
         public double Persentasi { get; set; }
+        public double NRKAP { get; set; }
+        public double NGS { get; set; }
+        public double PctNRKAP { get; set; }
+        public double PctNGS { get; set; }
 
     }
 }

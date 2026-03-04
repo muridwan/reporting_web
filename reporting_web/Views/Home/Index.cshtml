@@ -405,11 +405,13 @@
                     $.each(data.data, function() {
                         $senRKAPKontrib = (this['Kontribusi']/this['RKAPKontribusi']) * 100;
                         $senRKAPKlaim = (this['Klaim']/this['RKAPKlaimBruto']) * 100;
-                        $senGSKontrib = (this['Kontribusi']/this['GSKontribusi'])*100;
+                        $senGSKontrib = (this['Kontribusi'] / this['GSKontribusi']) * 100;
+                        $senRKAPKontribMonth = (this['Kontribusi'] / this['RKAPBulan']) * 100;
+                        $senGSKontribMonth = (this['Kontribusi'] / this['GSBulan']) * 100;
                         if(roleid<10)
-                            $('#jumProdThisYear').html(number_format(this['Kontribusi'],2,'.',',')+'<br>(' + number_format($senRKAPKontrib,2,'.',',') +'% RKAP)');
+                            $('#jumProdThisYear').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senRKAPKontrib, 2, '.', ',') + '% RKAP/Thn)<br>(' + number_format($senRKAPKontribMonth, 2, '.', ',') +'% RKAP/Bln)');
                         else
-                            $('#jumProdThisYear').html(number_format(this['Kontribusi'],2,'.',',')+'<br>(' + number_format($senGSKontrib,2,'.',',') +'% GS)');
+                            $('#jumProdThisYear').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senGSKontrib, 2, '.', ',') + '% GS/Thn)' + '<br>(' + number_format($senGSKontribMonth, 2, '.', ',') + '% GS/Bln)');
                         $('#jumKlaimThisYear').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
                         $('#jumSubroThisYear').html(number_format(this['Subrogasi'], 2, '.', ','));
                     });
@@ -516,11 +518,13 @@
                     $.each(data.data, function() {
                         $senRKAPKontrib = (this['Kontribusi']/this['RKAPKontribusi']) * 100;
                         $senRKAPKlaim = (this['Klaim']/this['RKAPKlaimBruto']) * 100;
-                        $senGSKontrib = (this['Kontribusi']/this['GSKontribusi'])*100;
+                        $senGSKontrib = (this['Kontribusi'] / this['GSKontribusi']) * 100;
+                        $senRKAPKontribMonth = (this['Kontribusi'] / this['RKAPBulan']) * 100;
+                        $senGSKontribMonth = (this['Kontribusi'] / this['GSBulan']) * 100;
                         if(roleid<10)
-                            $('#jumProdThisYearLast').html(number_format(this['Kontribusi'],2,'.',',')+'<br>('+number_format($senRKAPKontrib,2,'.',',')+'% RKAP)');
+                            $('#jumProdThisYearLast').html(number_format(this['Kontribusi'],2,'.',',')+'<br>('+number_format($senRKAPKontrib,2,'.',',')+'% RKAP/Thn)'+'<br>('+number_format($senRKAPKontribMonth,2,'.',',')+ '% RKAP/Bln)' );
                         else
-                            $('#jumProdThisYearLast').html(number_format(this['Kontribusi'],2,'.',',')+'<br>(' + number_format($senGSKontrib,2,'.',',') +'% GS)');                        
+                            $('#jumProdThisYearLast').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senGSKontrib, 2, '.', ',') + '% GS/Thn)' + '<br>(' + number_format($senGSKontribMonth, 2, '.', ',') + '% GS/Bln)');                        
                         $('#jumKlaimThisYearLast').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
                         $('#jumSubroThisYearLast').html(number_format(this['Subrogasi'], 2, '.', ','));
                     });

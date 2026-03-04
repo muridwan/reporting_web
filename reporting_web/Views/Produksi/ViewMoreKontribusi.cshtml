@@ -52,11 +52,15 @@
                 <th width="1%">No</th>
                 <th style="display:none">Kode Cabang</th>
                 <th>Nama Cabang</th>
-                <th>Kontribusi</th>                
-                <th>RKAP</th>
-                <th>Goal Seting (GS)</th>
-                <th>Persen RKAP</th>
+                <th>Kontribusi</th>
+                <th>RKAP/Bln</th>
+                <th>Persen RKAP/Bln</th>
+                <th>RKAP/Thn</th>
+                <th>Persen RKAP/Thn</th>
+                <th>Goal Seting (GS)/Thn</th>
+                <th>Goal Seting (GS)/Bln</th>
                 <th>Persen GS</th>
+                <th>Persen GS/Bln</th>
                 <th>Per COB</th>
                 <th>Per Segment</th>
                 <th>Per MKT</th>
@@ -71,13 +75,17 @@
                 </tr>*@
             <tr>
                 <th></th>
-                <th></th>                                
+                <th></th>
                 <th>Total</th>
                 <th id="totalft" align="right"></th>
+                <th id="totalrkapbln" align="right"></th>
+                <th id="persenrkapbln" align="right"></th>
                 <th id="totalrkap" align="right"></th>
+                <th id="persenrkap" align="right"></th>
                 <th id="totalgs" align="right"></th>
-                <th id="persenrkap" align="right"></th>                
+                <th id="totalgsbln" align="right"></th>
                 <th id="persenft" align="right"></th>
+                <th id="persenftbln" align="right"></th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -233,16 +241,23 @@
                 "drawCallback": function () {
                     var sum = $('#tblpersenkontribusicbg').DataTable().column(3).data().sum();
                     //var sumpersen = $('#tblpersenkontribusicbg').DataTable().column(7).data().sum();
-                    var sumrkap = $('#tblpersenkontribusicbg').DataTable().column(4).data().sum();
-                    var sumgs = $('#tblpersenkontribusicbg').DataTable().column(5).data().sum();
+                    var sumrkap = $('#tblpersenkontribusicbg').DataTable().column(6).data().sum();
+                    var sumrkapbln = $('#tblpersenkontribusicbg').DataTable().column(4).data().sum();
+                    var sumgs = $('#tblpersenkontribusicbg').DataTable().column(8).data().sum();
+                    var sumgsbln = $('#tblpersenkontribusicbg').DataTable().column(9).data().sum();
                     //var sumpersenrkap = $('#tblpersenkontribusicbg').DataTable().column(6).data().sum();
-                    var sumpersen = sum/sumgs * 100;
-                    var sumpersenrkap = sum/sumrkap * 100;
+                    var sumpersen = sum / sumgs * 100;
+                    var sumpersenbln = sum / sumgsbln * 100;
+                    var sumpersenrkap = sum / sumrkap * 100;
+                    var sumpersenrkapbln = sum / sumrkapbln * 100;
 
                     $('#totalft').html(number_format(sum,2,'.',','));
-                    $('#persenft').html(number_format(sumpersen,2,'.',','));
-                    $('#persenrkap').html(number_format(sumpersenrkap,2,'.',','));
-                    $('#totalrkap').html(number_format(sumrkap,2,'.',','));
+                    $('#persenft').html(number_format(sumpersen, 2, '.', ','));
+                    $('#persenftbln').html(number_format(sumpersenbln, 2, '.', ','));
+                    $('#persenrkap').html(number_format(sumpersenrkap, 2, '.', ','));
+                    $('#persenrkapbln').html(number_format(sumpersenrkapbln, 2, '.', ','));
+                    $('#totalrkap').html(number_format(sumrkap, 2, '.', ','));
+                    $('#totalrkapbln').html(number_format(sumrkapbln, 2, '.', ','));
                     if (roleid<=9)
                     {
                       $('#total').html('<b>Total Kontribusi: '+ number_format(sum,2,'.',','));
@@ -257,11 +272,15 @@
                      { "data": "SortNo" },
                      { "data": "branch",visible: false },
                      { "data": "Name" },
-                     { "data": "Kontribusi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right"},
-                     { "data": "NilaiRKAP", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
-                     { "data": "NilaiGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "Kontribusi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "NilaiRKAPBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "PersenRKAPBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "NilaiRKAP", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },   
                      { "data": "PersenRKAP", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "NilaiGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "NilaiGSBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },                                          
                      { "data": "PersenGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "PersenGSBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
                      { "data":null,"mRender": function(data, type, full) {
                                 return '<a class="btn btn-info btn-sm" href=ViewMoreKontribusiCob?status='+"@ViewBag.STATUS"+'&kdcbg=' + full.branch +'>' + 'View' + '</a>';
                      }, className: "text-center"},
@@ -345,8 +364,10 @@
             }).draw();
             if (roleid>9)
             {
-              table.column(4).visible(false);
-              table.column(6).visible(false);
+                table.column(4).visible(false);
+                table.column(5).visible(false);
+                table.column(6).visible(false);
+                table.column(7).visible(false);
             }
         });
       }
