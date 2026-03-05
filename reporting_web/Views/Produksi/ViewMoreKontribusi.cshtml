@@ -57,10 +57,10 @@
                 <th>Persen RKAP/Bln</th>
                 <th>RKAP/Thn</th>
                 <th>Persen RKAP/Thn</th>
-                <th>Goal Seting (GS)/Thn</th>
                 <th>Goal Seting (GS)/Bln</th>
-                <th>Persen GS</th>
+                <th>Goal Seting (GS)/Thn</th>
                 <th>Persen GS/Bln</th>
+                <th>Persen GS/Thn</th>
                 <th>Per COB</th>
                 <th>Per Segment</th>
                 <th>Per MKT</th>
@@ -82,10 +82,10 @@
                 <th id="persenrkapbln" align="right"></th>
                 <th id="totalrkap" align="right"></th>
                 <th id="persenrkap" align="right"></th>
-                <th id="totalgs" align="right"></th>
                 <th id="totalgsbln" align="right"></th>
-                <th id="persenft" align="right"></th>
+                <th id="totalgs" align="right"></th>
                 <th id="persenftbln" align="right"></th>
+                <th id="persenft" align="right"></th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -243,8 +243,8 @@
                     //var sumpersen = $('#tblpersenkontribusicbg').DataTable().column(7).data().sum();
                     var sumrkap = $('#tblpersenkontribusicbg').DataTable().column(6).data().sum();
                     var sumrkapbln = $('#tblpersenkontribusicbg').DataTable().column(4).data().sum();
-                    var sumgs = $('#tblpersenkontribusicbg').DataTable().column(8).data().sum();
-                    var sumgsbln = $('#tblpersenkontribusicbg').DataTable().column(9).data().sum();
+                    var sumgs = $('#tblpersenkontribusicbg').DataTable().column(9).data().sum();
+                    var sumgsbln = $('#tblpersenkontribusicbg').DataTable().column(8).data().sum();
                     //var sumpersenrkap = $('#tblpersenkontribusicbg').DataTable().column(6).data().sum();
                     var sumpersen = sum / sumgs * 100;
                     var sumpersenbln = sum / sumgsbln * 100;
@@ -266,7 +266,8 @@
                       $('#totalGSfooter').html('<b>Total Goal Setting (GS): '+ number_format(sumgs,2,'.',','));
                       $('#totalPersenGSfooter').html('<b>Total Persen Goal Setting (GS): '+ number_format(sumpersen,2,'.',','));
                     }
-                    $('#totalgs').html(number_format(sumgs,2,'.',','));
+                    $('#totalgs').html(number_format(sumgs, 2, '.', ','));
+                    $('#totalgsbln').html(number_format(sumgsbln, 2, '.', ','));
                 },
                 "columns": [
                      { "data": "SortNo" },
@@ -277,10 +278,10 @@
                      { "data": "PersenRKAPBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
                      { "data": "NilaiRKAP", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },   
                      { "data": "PersenRKAP", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
-                     { "data": "NilaiGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
-                     { "data": "NilaiGSBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },                                          
-                     { "data": "PersenGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "NilaiGSBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },  
+                     { "data": "NilaiGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" }, 
                      { "data": "PersenGSBulan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+                     { "data": "PersenGS", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },                     
                      { "data":null,"mRender": function(data, type, full) {
                                 return '<a class="btn btn-info btn-sm" href=ViewMoreKontribusiCob?status='+"@ViewBag.STATUS"+'&kdcbg=' + full.branch +'>' + 'View' + '</a>';
                      }, className: "text-center"},
