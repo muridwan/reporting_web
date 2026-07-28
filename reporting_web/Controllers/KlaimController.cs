@@ -11,6 +11,7 @@ using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using reporting_web.Security;
+using reporting_web.Helpers;
 
 namespace reporting_web.Controllers
 {
@@ -363,6 +364,38 @@ namespace reporting_web.Controllers
 
             return View();
         }
+        public ActionResult DataKlaimSumbis()
+        {
+            using (DataTOC db = new DataTOC())
+            {
+                var result = (from TOCList in db.TOCs select TOCList).ToList();
+                if (result != null)
+                {
+                    ViewBag.COBID = result.Select(x => new SelectListItem { Text = x.DESCRIPTION, Value = x.TOC1.ToString() });
+                }
+            }
+            VerifiyToken menu = new VerifiyToken();
+            long idrole = Int64.Parse(Session["RoleId"].ToString());
+            if (idrole == 1)
+            {
+                ViewBag.MenuParent = menu.getMenuParent();
+                ViewBag.SubMenu1 = menu.getSubMenu1();
+                ViewBag.SubMenu2 = menu.getSubMenu2();
+            }
+            else
+            {
+                ViewBag.MenuParent = menu.getMenuParent(idrole);
+                ViewBag.SubMenu1 = menu.getSubMenu1(idrole);
+                ViewBag.SubMenu2 = menu.getSubMenu2(idrole);
+            }
+            string CurrentURL = Request.Url.AbsoluteUri;
+            string filename = System.IO.Path.GetFileNameWithoutExtension(CurrentURL);
+
+            ViewBag.AksesUser = menu.getAccessMenu(filename, idrole);
+
+            return View();
+        }
+
         public ActionResult DataPersenJumKlaimUsiaKrm()
         {
             using (DataTOC db = new DataTOC())
@@ -719,6 +752,58 @@ namespace reporting_web.Controllers
 
         }
 
+        public List<T> GetDataReport<T>(string SDate,string EDate,string spName,string COB,string TOC,List<string> ListTOC,string token = "",
+                                        int roleid = 0)
+        {
+            string[] listTOC = ListTOC[0].Split(new string[] { "," }, StringSplitOptions.None);
+
+            DataTable tvp = new DataTable();
+            tvp.Columns.Add(new DataColumn("TOC", typeof(string)));
+
+            foreach (var idtoc in listTOC)
+                tvp.Rows.Add(idtoc);
+
+            string constr = ConfigurationManager.ConnectionStrings["SqlDBDRC"].ConnectionString;
+
+            try
+            {
+                DataTable dt = new DataTable();
+
+                using (SqlConnection con = new SqlConnection(constr))
+                using (SqlCommand cmd = new SqlCommand(spName, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add("@SDate", SqlDbType.DateTime).Value = DateTime.Parse(SDate);
+                    cmd.Parameters.Add("@EDate", SqlDbType.DateTime).Value = DateTime.Parse(EDate);
+                    cmd.Parameters.Add("@COB", SqlDbType.VarChar).Value = COB;
+                    cmd.Parameters.Add("@TOC", SqlDbType.VarChar).Value = TOC;
+
+                    cmd.Parameters.Add("@ListTOC", SqlDbType.Structured);
+                    cmd.Parameters["@ListTOC"].TypeName = "dbo.toc_list_tbltype";
+                    cmd.Parameters["@ListTOC"].Value = tvp;
+
+                    if (!string.IsNullOrEmpty(token))
+                        cmd.Parameters.Add("@Token", SqlDbType.VarChar).Value = token;
+
+                    if (roleid != 0)
+                        cmd.Parameters.Add("@RoleId", SqlDbType.BigInt).Value = roleid;
+
+                    cmd.CommandTimeout = 1200000;
+
+                    SqlDataAdapter adpt = new SqlDataAdapter(cmd);
+                    adpt.Fill(dt);
+                }
+
+                return ConvertDataTableToList<T>(dt);
+            }
+            catch (SqlException ex)
+            {
+                DisplaySqlErrors(ex);
+                return null;
+            }
+        }
+
         public JsonResult GetDataKlaimDate2(string SDate, string EDate, string TypeReport, List<string> ListTOC,List<string> ListBranch, string COB = "%", string TOC = "%", string Branch = "%", string stoken = "", int iroleid = 0)
         {
             if (TypeReport != "")
@@ -744,47 +829,191 @@ namespace reporting_web.Controllers
 
         }
 
-        public JsonResult GetDataKlaimDate(string SDate, string EDate, string TypeReport, List<string> ListTOC, string COB = "%", string TOC = "%", string stoken = "", int iroleid = 0)
+        public JsonResult GetDataKlaimDate(string SDate,string EDate,string TypeReport,List<string> ListTOC,string COB = "%",string TOC = "%",
+                                           string stoken = "", int iroleid = 0)
         {
-            if (TypeReport != "")
-            {
-                string spName="";
 
-                if (TypeReport == "PERSENKLAIMCBG")
-                    spName = "spGetPersenKlaimCbg";
-                else if (TypeReport == "PERSENKLAIMUY")
-                    spName = "spGetPersenKlaimUY";
-                else if (TypeReport == "PERSENKLAIMCOL")
-                    spName = "spGetPersenKlaimCOL";
-                else if (TypeReport == "PERSENKLAIMUSIADIE")
-                    spName = "spGetPersenJumKlaimUsiaDie";
-                else if (TypeReport == "PERSENKLAIMWAKTUDIE")
-                    spName = "spGetPersenJumKlaimWaktuDie";
-                else if (TypeReport == "PERSENKLAIMUSIAWAKTUDIE")
-                    spName = "spGetPersenJumKlaimWaktuUsiaDie";
-                else if (TypeReport == "PERSENKLAIMDESCLOSSDIE")
-                    spName = "spGetPersenKlaimDescLossDie";
-                else if (TypeReport == "PERSENKLAIMUSIAPHK")
-                    spName = "spGetPersenJumKlaimUsiaPHK";
-                else if (TypeReport == "PERSENKLAIMUSIAKRM")
-                    spName = "spGetPersenJumKlaimUsiaKrm";
-                else if (TypeReport == "PERSENKLAIMCOB")
-                    spName = "spGetPersenKlaimCob";
-                else if (TypeReport == "PERSENKLAIMSUBRO")
-                    spName = "spGetPersenSubroCbg";
-                var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+            ReportDefinition report;
+
+            if (!ReportHelper.Reports.TryGetValue(TypeReport, out report))
+            {
                 return Json(new
                 {
-                    data = list,
-                    recordsTotal = list.Count,
-                    recordsFiltered = 0
+                    success = false,
+                    message = "Report tidak ditemukan."
                 }, JsonRequestBehavior.AllowGet);
             }
-            else
+
+            var result = ReportExecutor.Execute(this,report,SDate,EDate,COB,TOC,ListTOC,stoken,iroleid);
+
+            dynamic list = result;
+
+            return Json(new
             {
-                return null;
-            }
+                data = list,
+                recordsTotal = list.Count,
+                recordsFiltered = list.Count
+            }, JsonRequestBehavior.AllowGet);
+
         }
+
+        //public JsonResult GetDataKlaimDate(string SDate, string EDate, string TypeReport, List<string> ListTOC, string COB = "%", string TOC = "%", string stoken = "", int iroleid = 0)
+        //{
+
+        //    if (TypeReport != "")
+        //    {
+        //        string spName="";                
+
+        //        if (TypeReport == "PERSENKLAIMCBG")
+        //        {
+        //            spName = "spGetPersenKlaimCbg";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMUY")
+        //        {
+        //            spName = "spGetPersenKlaimUY";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMCOL")
+        //        {
+        //            spName = "spGetPersenKlaimCOL";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMUSIADIE")
+        //        {
+        //            spName = "spGetPersenJumKlaimUsiaDie";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMWAKTUDIE")
+        //        {
+        //            spName = "spGetPersenJumKlaimWaktuDie";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMUSIAWAKTUDIE")
+        //        {
+        //            spName = "spGetPersenJumKlaimWaktuUsiaDie";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMDESCLOSSDIE")
+        //        {
+        //            spName = "spGetPersenKlaimDescLossDie";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMUSIAPHK")
+        //        {
+        //            spName = "spGetPersenJumKlaimUsiaPHK";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMUSIAKRM")
+        //        {
+        //            spName = "spGetPersenJumKlaimUsiaKrm";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMCOB")
+        //        {
+        //            spName = "spGetPersenKlaimCob";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "PERSENKLAIMSUBRO")
+        //        {
+        //            spName = "spGetPersenSubroCbg";
+        //            var list = GetDataPersenKlaim(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid); // list of records to be displayed in datatable
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //        else if (TypeReport == "LAPORANKLAIMSUMBIS")
+        //        {
+        //            spName = "spLaporanKlaimSumbis";
+        //            var list = GetDataReport<DataKlaimSumbis>(SDate, EDate, spName, COB, TOC, ListTOC, stoken, iroleid);
+        //            return Json(new
+        //            {
+        //                data = list,
+        //                recordsTotal = list.Count,
+        //                recordsFiltered = 0
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }                
+        //        else
+        //        {
+        //            return Json(new
+        //            {
+        //                success = false,
+        //                message = "TypeReport tidak dikenali."
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }                
+        //    }
+        //    else
+        //    {
+        //        return Json(new
+        //        {
+        //            success = false,
+        //            message = "TypeReport tidak dikenali."
+        //        }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
     }
 

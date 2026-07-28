@@ -176,6 +176,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\ReportDefinition.cs" />
+    <Compile Include="Helpers\ReportExecutor.cs" />
+    <Compile Include="Helpers\ReportHelper.cs" />
     <Compile Include="Models\Account.cs" />
     <Compile Include="Models\Branch.cs" />
     <Compile Include="Models\BranchGroup.cs" />
@@ -185,6 +188,7 @@
     <Compile Include="Models\DataBranchUser.cs" />
     <Compile Include="Models\DataCOB.cs" />
     <Compile Include="Models\DataGroupBranch.cs" />
+    <Compile Include="Models\DataKlaimSumbis.cs" />
     <Compile Include="Models\DataLabaRugiGab.cs" />
     <Compile Include="Models\DataListJurnalTrans.cs" />
     <Compile Include="Models\DataLogin.cs" />
@@ -3578,6 +3582,7 @@
     <Content Include="Views\Produksi\ViewMoreKontribusiMkt.cshtml" />
     <Content Include="Views\Klaim\DataKlaimSubro.cshtml" />
     <Content Include="Views\Klaim\ViewMoreSubrogasi.cshtml" />
+    <Content Include="Views\Klaim\DataKlaimSumbis.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
