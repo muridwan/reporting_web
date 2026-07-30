@@ -4,6 +4,22 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+
+    #tbllossratiocbg {
+        width: 100% !important;
+    }
+
+    table.dataTable th,
+    table.dataTable td {
+        white-space: nowrap;
+    }
+
+    .dataTables_wrapper {
+        width: 100%;
+    }
+</style>
+
 <div id="loadingOverlay">
     <div class="loading-content">
         <div class="spinner"></div>
@@ -135,49 +151,49 @@
                         <div id="divGetPeriode"></div>
 
                         <div>
-                            <table id="tbllossratiocbg" class="display dataTable" style="width:100%">
+                            <table id="tbllossratiocbg" class="display nowrap" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th width="2%">No</th>
-                                        <th width="20%">Branch Description</th>
-                                        <th width="18%">Jml Klaim BPD</th>
-                                        <th width="30%">Nilai Klaim BPD</th>
-                                        <th width="30%">Jml Klaim BSI</th>
-                                        <th width="30%">Nilai Klaim BSI</th>
-                                        <th width="30%">Jml Klaim Pegadaian</th>
-                                        <th width="30%">Nilai Klaim Pegadaian</th>
-                                        <th width="30%">Jml Klaim PNM</th>
-                                        <th width="30%">Nilai Klaim PNM</th>
-                                        <th width="30%">Jml Klaim Travel</th>
-                                        <th width="30%">Nilai Klaim Travel</th>
-                                        <th width="30%">Jml Klaim Lainnya</th>
-                                        <th width="30%">Nilai Klaim Lainnya</th>
-                                        <th width="30%">Todal Jml Klaim</th>
-                                        <th width="30%">Total Nilai Klaim </th>
+                                        <th>No</th>
+                                        <th>Branch Description</th>
+                                        <th>Jml Klaim BPD</th>
+                                        <th>Nilai Klaim BPD</th>
+                                        <th>Jml Klaim BSI</th>
+                                        <th>Nilai Klaim BSI</th>
+                                        <th>Jml Klaim Pegadaian</th>
+                                        <th>Nilai Klaim Pegadaian</th>
+                                        <th>Jml Klaim PNM</th>
+                                        <th>Nilai Klaim PNM</th>
+                                        <th>Jml Klaim Travel</th>
+                                        <th>Nilai Klaim Travel</th>
+                                        <th>Jml Klaim Lainnya</th>
+                                        <th>Nilai Klaim Lainnya</th>
+                                        <th>Todal Jml Klaim</th>
+                                        <th>Total Nilai Klaim </th>
                                     </tr>
                                 </thead>
                                 <tfoot>
                                     <tr>
                                         @*<th>Branch Description</th>
-        <th>Kontribusi</th>
-        <th>Klaim</th>
-        <th>LR</th>*@
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
+                                        <th>Kontribusi</th>
+                                        <th>Klaim</th>
+                                        <th>LR</th>*@
                                         <th></th>
                                         <th>Total</th>
-                                        <th id="persenLR" align="right"></th>
-                                        <th id="totalkontribusi" align="right"></th>
-                                        <th id="totalklaim" align="right"></th>
+                                        <th id="JumKlaimBPD" align="right"></th>
+                                        <th id="NilaiKlaimBPD" align="right"></th>
+                                        <th id="JumKlaimBSI" align="right"></th>
+                                        <th id="NilaiKlaimBSI" align="right"></th>
+                                        <th id="JumKlaimPgd" align="right"></th>
+                                        <th id="NilaiKlaimPgd" align="right"></th>
+                                        <th id="JumKlaimPNM" align="right"></th>
+                                        <th id="NilaiKlaimPNM" align="right"></th>
+                                        <th id="JumKlaimTravel" align="right"></th>
+                                        <th id="NilaiKlaimTravel" align="right"></th>
+                                        <th id="JumKlaimLain" align="right"></th>
+                                        <th id="NilaiKlaimLain" align="right"></th>
+                                        <th id="totalJumKlaim" align="right"></th>
+                                        <th id="totalNilaiKlaim" align="right"></th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -337,7 +353,14 @@
                                             },
                                         });
 
-                                        $("#tbllossratiocbg").dataTable().fnDestroy();
+                                        //$("#tbllossratiocbg").dataTable().fnDestroy();
+                                        if ($.fn.DataTable.isDataTable('#tbllossratiocbg')) {
+
+                                            $('#tbllossratiocbg').DataTable().destroy();
+
+                                            $('#tbllossratiocbg tbody').empty();
+
+                                        }
                                         //$('#tbllossratiocbg tfoot th').each( function () {
                                         //    var title = $('#tbllossratiocbg thead th').eq( $(this).index() ).text();
                                         //    $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
@@ -349,11 +372,23 @@
                                             .on('xhr.dt', function () {
                                                 $("#loadingOverlay").hide();
                                             });
+                                        var exportOptions = {
+                                            columns: ':visible',
+                                            format: {
+                                                body: function (data, row, column) {
+
+                                                    if (column === 0)
+                                                        return row + 1;
+
+                                                    return $('<div>').html(data).text();
+
+                                                }
+                                            }
+                                        };
+                                        
                                         var table = $('#tbllossratiocbg').DataTable({
                                             "ajax": {
-                                                "url": '/Klaim/GetDataKlaimDate?SDate=' + $sdate + "&EDate=" + $edate + "&TypeReport=LAPORANKLAIMSUMBIS&ListTOC=" + $listTOC + "&COB=" + $cobid + "&TOC=" + $tocid,
-                                                "processing": true,
-                                                "serverSide": true,
+                                                "url": '/Klaim/GetDataKlaimDate?SDate=' + $sdate + "&EDate=" + $edate + "&TypeReport=LAPORANKLAIMSUMBIS&ListTOC=" + $listTOC + "&COB=" + $cobid + "&TOC=" + $tocid,                                                                                               
                                                 "type": "POST", // ajax type must be match to controllers action type
                                                 "datatype": "json",
                                                 "async": true,
@@ -362,24 +397,58 @@
 
                                                 }
                                             },
-                                            "drawCallback": function () {
-                                                //$("#loadingOverlay").hide(); // HIDE LOADING
-                                                var sumkontribusi = $('#tbllossratiocbg').DataTable().column(3).data().sum();
-                                                var sumklaim = $('#tbllossratiocbg').DataTable().column(4).data().sum();
-                                                //$('#total').html('<b>Total Klaim: '+ number_format(sum,2,'.',','));
-
-                                                var sumLR = (sumklaim / sumkontribusi) * 100;// $('#tbllossratiocbg').DataTable().column(2).data().sum();
-
-                                                $('#totalkontribusi').html(number_format(sumkontribusi, 2, '.', ','));
-                                                $('#totalklaim').html(number_format(sumklaim, 2, '.', ','));
-                                                $('#persenLR').html(number_format(sumLR, 2, '.', ','));
-                                            },
                                             //"drawCallback": function () {
-                                            //    var sum = $('#tbllossratiocbg').DataTable().column(1).data().sum();
-                                            //    $('#total').html('<b>Total Jumlah Klaim: '+ number_format(sum,2,'.',','));
+                                            //    //$("#loadingOverlay").hide(); // HIDE LOADING
+                                            //    var JumKlaimBPD = $('#tbllossratiocbg').DataTable().column(2).data().sum();
+                                            //    var NilaiKlaimBPD = $('#tbllossratiocbg').DataTable().column(3).data().sum();
+                                            //    var JumKlaimBSI = $('#tbllossratiocbg').DataTable().column(4).data().sum();
+                                            //    var NilaiKlaimBSI = $('#tbllossratiocbg').DataTable().column(5).data().sum();
+                                            //    var JumKlaimPgd = $('#tbllossratiocbg').DataTable().column(6).data().sum();
+                                            //    var NilaiKlaimPgd = $('#tbllossratiocbg').DataTable().column(7).data().sum();
+                                            //    var JumKlaimPNM = $('#tbllossratiocbg').DataTable().column(8).data().sum();
+                                            //    var NilaiKlaimPNM = $('#tbllossratiocbg').DataTable().column(9).data().sum();
+                                            //    var JumKlaimTravel = $('#tbllossratiocbg').DataTable().column(10).data().sum();
+                                            //    var NilaiKlaimTravel = $('#tbllossratiocbg').DataTable().column(11).data().sum();
+                                            //    var JumKlaimLain = $('#tbllossratiocbg').DataTable().column(12).data().sum();
+                                            //    var NilaiKlaimLain = $('#tbllossratiocbg').DataTable().column(13).data().sum();
+                                            //    var TotalJumKlaim = $('#tbllossratiocbg').DataTable().column(14).data().sum();
+                                            //    var TotalNilaiKlaim = $('#tbllossratiocbg').DataTable().column(15).data().sum();
+                                            //    //$('#total').html('<b>Total Klaim: '+ number_format(sum,2,'.',','));                                                
+
+                                            //    $('#totalJumKlaim').html(number_format(TotalJumKlaim, 2, '.', ','));
+                                            //    $('#totalNilaiKlaim').html(number_format(TotalNilaiKlaim, 2, '.', ','));
+                                            //    $('#NilaiKlaimLain').html(number_format(NilaiKlaimLain, 2, '.', ','));
+                                            //    $('#JumKlaimLain').html(number_format(JumKlaimLain, 2, '.', ','));
+                                            //    $('#NilaiKlaimTravel').html(number_format(NilaiKlaimTravel, 2, '.', ','));
+                                            //    $('#JumKlaimTravel').html(number_format(JumKlaimTravel, 2, '.', ','));
+                                            //    $('#NilaiKlaimPNM').html(number_format(NilaiKlaimPNM, 2, '.', ','));
+                                            //    $('#JumKlaimPNM').html(number_format(JumKlaimPNM, 2, '.', ','));
+                                            //    $('#NilaiKlaimPgd').html(number_format(NilaiKlaimPgd, 2, '.', ','));
+                                            //    $('#JumKlaimPgd').html(number_format(JumKlaimPgd, 2, '.', ','));
+                                            //    $('#NilaiKlaimBSI').html(number_format(NilaiKlaimBSI, 2, '.', ','));
+                                            //    $('#JumKlaimBSI').html(number_format(JumKlaimBSI, 2, '.', ','));
+                                            //    $('#NilaiKlaimBPD').html(number_format(NilaiKlaimBPD, 2, '.', ','));
+                                            //    $('#JumKlaimBPD').html(number_format(JumKlaimBPD, 2, '.', ','));
                                             //},
+                                            
                                             "columns": [
-                                                { "data": "KANTOR_OPERASIONAL" },
+                                                {
+                                                    "data": null,
+                                                    "orderable": false,
+                                                    "searchable": false,
+                                                    "className": "text-center",
+                                                    //defaultContent: "",
+                                                    render: function (data, type, row, meta) {
+
+                                                        return meta.settings._iDisplayStart + meta.row + 1;
+
+                                                    }
+                                                    //render: function (data, type, row, meta) {
+
+                                                    //    return meta.settings._iDisplayStart + meta.row + 1;
+
+                                                    //}//untuk kasih no tapi ketika di sort nomor jadi kacau                                                    
+                                                },
                                                 { "data": "KANTOR_OPERASIONAL" },
                                                 { "data": "BPD_JUMLAH_KLAIM", render: $.fn.dataTable.render.number(',', '.', 0, ''), className: "text-right" },
                                                 { "data": "BPD_NILAI_KLAIM", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
@@ -398,30 +467,56 @@
                                             ],
                                             //"dom": 'Bfrtip',
                                             //"dom": "l<t>Bfrtip",
-                                            "dom": "<'row'<'col-sm-6'l>>" +
+                                            "dom": //"<'row'<'col-sm-6'l>>" +
                                                 "<'row'<'col-sm-6'B><'col-sm-6'f>>" +
                                                 "<'row'<'col-sm-12'tr>>" +
                                                 "<'row'<'col-sm-5'i><'col-sm-7'p>>",
                                             buttons: [
-                                                'copy',
+                                                {
+                                                    extend: 'copy',
+                                                    footer: true,
+                                                    exportOptions: exportOptions
+                                                },
                                                 {
                                                     extend: 'excel',
                                                     messageTop: $message,
-                                                    footer: true
+                                                    footer: true,
+                                                    exportOptions: exportOptions
                                                 },
                                                 {
                                                     extend: 'pdf',
                                                     messageTop: $message,
-                                                    footer: true
+                                                    footer: true,
+                                                    orientation: 'landscape',
+                                                    pageSize: 'A3',
+                                                    //exportOptions: {
+                                                    //    format: {
+                                                    //        body: function (data, row, column, node) {
+
+                                                    //            if (column === 0)
+                                                    //                return row + 1;
+
+                                                    //            return $(data).text ? $(data).text() : data;
+                                                    //        }
+                                                    //    }
+                                                    //}
+                                                    exportOptions: exportOptions
                                                     //messageBottom: null
                                                 },
                                                 {
                                                     extend: 'print',
                                                     messageTop: $message,
-                                                    footer: true
+                                                    footer: true,
+                                                    exportOptions: exportOptions
                                                 }
                                             ],
-                                            responsive: true,
+                                            processing: true,
+                                            serverSide: false,
+                                            scrollX: true,                                            
+                                            scrollCollapse: true,
+                                            autoWidth: false, 
+                                            responsive: false,
+                                            fixedHeader: false,
                                             paging: false,
                                             columnDefs: [
                                                 {
@@ -431,7 +526,55 @@
                                                 },
                                             ],
                                             colReorder: true,
-                                            order: [[2, 'asc']],
+                                            order: [[1, 'asc']],
+                                            
+                                            footerCallback: function (row, data, start, end, display) {
+
+                                                var api = this.api();
+
+                                                $(api.column(2).footer()).html(
+                                                    number_format(api.column(2).data().sum(), 0, '.', ',')
+                                                );
+                                                $(api.column(3).footer()).html(
+                                                    number_format(api.column(3).data().sum(), 2, '.', ',')
+                                                );
+                                                $(api.column(4).footer()).html(
+                                                    number_format(api.column(4).data().sum(), 0, '.', ',')
+                                                );
+                                                $(api.column(5).footer()).html(
+                                                    number_format(api.column(5).data().sum(), 2, '.', ',')
+                                                );
+                                                $(api.column(6).footer()).html(
+                                                    number_format(api.column(6).data().sum(), 0, '.', ',')
+                                                );
+                                                $(api.column(7).footer()).html(
+                                                    number_format(api.column(7).data().sum(), 2, '.', ',')
+                                                );
+                                                $(api.column(8).footer()).html(
+                                                    number_format(api.column(8).data().sum(), 0, '.', ',')
+                                                );
+                                                $(api.column(9).footer()).html(
+                                                    number_format(api.column(9).data().sum(), 2, '.', ',')
+                                                );
+                                                $(api.column(10).footer()).html(
+                                                    number_format(api.column(10).data().sum(), 0, '.', ',')
+                                                );
+                                                $(api.column(11).footer()).html(
+                                                    number_format(api.column(11).data().sum(), 2, '.', ',')
+                                                );
+                                                $(api.column(12).footer()).html(
+                                                    number_format(api.column(12).data().sum(), 0, '.', ',')
+                                                );
+                                                $(api.column(13).footer()).html(
+                                                    number_format(api.column(13).data().sum(), 2, '.', ',')
+                                                );
+                                                $(api.column(14).footer()).html(
+                                                    number_format(api.column(14).data().sum(), 0, '.', ',')
+                                                );
+                                                $(api.column(15).footer()).html(
+                                                    number_format(api.column(15).data().sum(), 2, '.', ',')
+                                                );
+                                            }
                                             //"dom": '<"top"fl>rBt<"bottom"ip><"clear">',
                                             //   "buttons": [
                                             //       'copy', 'csv', 'excel', 'pdf', 'print'
@@ -443,19 +586,77 @@
                                             "targets": [2]
                                             },]*/
                                         });
-                                        table.on('order.dt search.dt', function () {
-                                            let i = 1;
+                                        ////Numbering
+                                        //table.on('order.dt search.dt', function () {
+                                        //    let i = 1;
 
-                                            table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
-                                                this.data(i++);
+                                        //    table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
+                                        //        this.data(i++);
+                                        //    });
+                                        //}).draw();
+
+                                        table.on('order.dt search.dt draw.dt', function () {
+
+                                            table.column(0, {
+                                                search: 'applied',
+                                                order: 'applied'
+                                            }).nodes().each(function (cell, i) {
+
+                                                cell.innerHTML = i + 1;
+
                                             });
-                                        }).draw();
-                                        $("#tbllossratiocbg tfoot input").on('keyup change', function () {
-                                            table
-                                                .column($(this).parent().index() + ':visible')
-                                                .search(this.value)
-                                                .draw();
+
                                         });
+                                        //table.on('draw.dt', function () {
+                                        //    var info = table.page.info();
+
+                                        //    table.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                                        //        cell.innerHTML = info.start + i + 1;
+                                        //    });
+                                        //});
+                                        //$("#tbllossratiocbg tfoot input").on('keyup change', function () {
+                                        //    table
+                                        //        .column($(this).parent().index() + ':visible')
+                                        //        .search(this.value)
+                                        //        .draw();
+                                        //});
+                                        //function refreshRowNumber(table) {
+
+                                        //    var info = table.page.info();
+
+                                        //    table.column(0, { search: 'applied', order: 'applied', page: 'current' })
+                                        //        .nodes()
+                                        //        .each(function (cell, i) {
+
+                                        //            cell.innerHTML = info.start + i + 1;
+
+                                        //        });
+
+                                        //}
+                                        //table.on('draw.dt order.dt search.dt', function () {
+
+                                        //    refreshRowNumber(table);
+
+                                        //});
+                                        
+                                        //function updateRowNumber(table) {
+
+                                        //    table.rows({ search: 'applied', order: 'applied' }).every(function (rowIdx) {
+
+                                        //        var d = this.data();
+
+                                        //        d.No = rowIdx + 1;
+
+                                        //        this.invalidate();     // penting
+
+                                        //    });
+
+                                        //}
+                                        //table.on('draw.dt order.dt search.dt', function () {
+
+                                        //    updateRowNumber(table);
+
+                                        //});
                                     });
 
 
