@@ -1402,6 +1402,12 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\buttons.dataTables-2.0.1.min.css" />
     <Content Include="Content\colReorder.dataTables.min.css" />
+    <Content Include="Scripts\Common\datatable.export.js" />
+    <Content Include="Scripts\Common\datatable.footer.js" />
+    <Content Include="Scripts\Common\datatable.helper.js" />
+    <Content Include="Scripts\Common\datatable.loading.js" />
+    <Content Include="Scripts\Common\datatable.number.js" />
+    <Content Include="Scripts\Common\loading.helpers.js" />
     <Content Include="Content\dataTables.bootstrap-1.11.2.min.css" />
     <Content Include="Content\dataTables.fontAwesome-1.11.2.css" />
     <Content Include="Content\demo-loading.css" />
