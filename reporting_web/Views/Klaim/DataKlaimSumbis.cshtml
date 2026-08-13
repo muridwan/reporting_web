@@ -46,8 +46,9 @@
 @*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
 <script src="~/Scripts/jquery-3.5.1.js"></script>
 <script src="~/Scripts/AASReport/AasReport.js"></script>
+@*<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>*@
 @*<script src="~/Scripts/jquery-3.5.1.js"></script>*@
-
+<script src="~/Content/chart.js"></script>
 
 
 @*<div class="jumbotron">Crystal Report in ASP.NET</div>*@
@@ -61,74 +62,81 @@
                 <h2>Select Filter</h2>
             </div>
             <div class="card-body">
-                <div class="form-group">
-                    <div>
-                        <label>Start Date</label>
-                    </div>
-                    <div>
-                        <input id="fromdate" type="text" name="FromDate" class="datepicker" />
-                    </div>
-                    @*@Html.EditorFor(model => model.DateData, new { htmlAttributes = new { @class = "datepicker" } })*@
-                </div>
+                
                 <div class="form-group">
                     <div>
                         <div>
                             <div>
                                 <div>
                                     <div>
-                                        <div>
-                                            <div>
-                                                <label>End Date</label>
-                                            </div>
-                                            <div>
-                                                <input id="todate" type="text" name="ToDate" class="datepicker" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div>
-                                                <label>COB</label>
-                                            </div>
-                                            <div>
-                                                <input id="txtcobname" type="text" name="CobName" />
-                                                <input id="cobid" type="hidden" name="CobID" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div>
-                                                <label>TOC</label>
-                                            </div>
-                                            <div>
-                                                <select id="COBSel" multiple="multiple" required=required name="COBSel">
+                                        
+                                        <div class="row">
+
+                                            <div class="col-md-5">
+                                                <!-- Filter -->
+                                                <div class="form-group">
+                                                    <div>
+                                                        <label>Start Date</label>
+                                                    </div>
+                                                    <div>
+                                                        <input id="fromdate" type="text" name="FromDate" class="datepicker" />
+                                                    </div>
+                                                    @*@Html.EditorFor(model => model.DateData, new { htmlAttributes = new { @class = "datepicker" } })*@
+                                                </div>
+                                                <div>
+                                                    <div>
+                                                        <label>End Date</label>
+                                                    </div>
+                                                    <div>
+                                                        <input id="todate" type="text" name="ToDate" class="datepicker" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div>
+                                                        <label>COB</label>
+                                                    </div>
+                                                    <div>
+                                                        <input id="txtcobname" type="text" name="CobName" />
+                                                        <input id="cobid" type="hidden" name="CobID" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div>
+                                                        <label>TOC</label>
+                                                    </div>
+                                                    <div>
+                                                        <select id="COBSel" multiple="multiple" required=required name="COBSel">
 
 
-                                                    @if (ViewBag.COBID != null)
-                                                    {
-                                                        foreach (var item in ViewBag.COBID)
-                                                        {
-                                                            if (item.Text != null)
+                                                            @if (ViewBag.COBID != null)
                                                             {
-                                                                <option value="@item.Value">
-                                                                    @item.Value-@item.Text
-                                                                </option>
+                                                                foreach (var item in ViewBag.COBID)
+                                                                {
+                                                                    if (item.Text != null)
+                                                                    {
+                                                                        <option value="@item.Value">
+                                                                            @item.Value-@item.Text
+                                                                        </option>
+                                                                    }
+                                                                }
                                                             }
-                                                        }
-                                                    }
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="row">
-                                                <div class="col-md-4">
-                                                    <button class="btn btn-info" id="btnKlaimSumbis"> Load Table Loss Ratio</button>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <button class="btn btn-info" id="btnKlaimSumbis"> Load Data</button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="col-md-8">
-                                                <center>
-
-                                                </center>
+                                            <div class="col-md-7 text-center">
+                                                <div style="width:350px; height:350px; margin:auto;">
+                                                    <canvas id="pieKlaimSumbis"></canvas>
+                                                </div>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -238,6 +246,7 @@
             <script src="https://cdn.datatables.net/1.11.2/js/dataTables.bootstrap4.min.js "></script>*@
 
                             <script>
+                                var pieChart = null;
                                 $(document).ready(function () {
                                     $('#loadingOverlay').appendTo('body');
                                     $('#loadingOverlay').removeClass('show');
@@ -429,7 +438,11 @@
                                             //    $('#NilaiKlaimBPD').html(number_format(NilaiKlaimBPD, 2, '.', ','));
                                             //    $('#JumKlaimBPD').html(number_format(JumKlaimBPD, 2, '.', ','));
                                             //},
+                                            drawCallback: function () {
 
+                                                BuildPieChart(this.api());
+
+                                            },
                                             "columns": [
                                                 {
                                                     "data": null,
@@ -570,6 +583,63 @@
                                         //});
                                     });
 
+                                    function BuildPieChart(api) {
+
+                                        var totalBPD = api.column(2).data().sum();
+                                        var totalBSI = api.column(4).data().sum();
+                                        var totalPeg = api.column(6).data().sum();
+                                        var totalPNM = api.column(8).data().sum();
+                                        var totalTravel = api.column(10).data().sum();
+                                        var totalLain = api.column(12).data().sum();
+
+                                        var ctx = document.getElementById("pieKlaimSumbis");
+                                        if (pieChart != null)
+                                            pieChart.destroy();
+                                        pieChart = new Chart(ctx, {
+                                            type: 'pie',
+                                            data: {
+                                                labels: [
+                                                    "BPD",
+                                                    "BSI",
+                                                    "Pegadaian",
+                                                    "PNM",
+                                                    "Travel",
+                                                    "Lain-lain"
+                                                ],
+                                                datasets: [{
+                                                    data: [
+                                                        totalBPD,
+                                                        totalBSI,
+                                                        totalPeg,
+                                                        totalPNM,
+                                                        totalTravel,
+                                                        totalLain
+                                                    ],
+                                                    backgroundColor: [
+                                                        "#4CAF50",
+                                                        "#2196F3",
+                                                        "#FFC107",
+                                                        "#F44336",
+                                                        "#9C27B0",
+                                                        "#607D8B"
+                                                    ]
+                                                }]
+                                            },
+                                            options: {
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'top'
+                                                    },
+                                                    title: {
+                                                        display: true,
+                                                        text: 'Komposisi Jumlah Klaim'
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
 
                                     function number_format(number, decimals, dec_point, thousands_sep) {
                                         // http://kevin.vanzonneveld.net

@@ -1401,6 +1401,7 @@
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\buttons.dataTables-2.0.1.min.css" />
+    <Content Include="Content\chart.js" />
     <Content Include="Content\colReorder.dataTables.min.css" />
     <Content Include="Scripts\Common\datatable.export.js" />
     <Content Include="Scripts\Common\datatable.footer.js" />
