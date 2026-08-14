@@ -219,9 +219,9 @@ namespace reporting_web.Controllers
         }
         
         [HttpGet]
-        public JsonResult GetGrowthKontribusi5Year(string stoken = "", int iroleid = 0)
+        public JsonResult GetGrowthKontribusi5Year(string stoken = "", int iroleid = 0, string spParam = "")
         {
-            var list = GetListGrowthKontribusi5Year(stoken, iroleid);
+            var list = GetListGrowthKontribusi5Year(stoken, iroleid,spParam);
 
             return Json(
                 new
@@ -233,7 +233,8 @@ namespace reporting_web.Controllers
                 JsonRequestBehavior.AllowGet
             );
         }
-        public List<DataGrowthKontribusi> GetListGrowthKontribusi5Year(string token = "",int roleid = 0)
+        
+        public List<DataGrowthKontribusi> GetListGrowthKontribusi5Year(string token = "",int roleid = 0, string spParam="")
         {
             string constr = ConfigurationManager.ConnectionStrings["SqlDBDRC"].ConnectionString;
 
@@ -247,7 +248,7 @@ namespace reporting_web.Controllers
                     {
                         cmd.Connection = con;
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.CommandText = "spGrowthKontribusi5Year";
+                        cmd.CommandText = spParam;
                         cmd.Parameters.Add("@Token", SqlDbType.VarChar).Value = token;
                         cmd.Parameters.Add("@RoleId", SqlDbType.BigInt).Value = roleid;
                         cmd.CommandTimeout = 1200000;

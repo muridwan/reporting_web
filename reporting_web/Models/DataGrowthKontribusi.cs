@@ -9,5 +9,8 @@ namespace reporting_web.Models
     {
         public int Tahun { get; set; }
         public double Kontribusi { get; set; }
+        public double Klaim { get; set; }
+        public double LossRatio { get; set; }
+        public double GrowthKontribusi { get; set; }
     }
 }

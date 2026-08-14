@@ -15,8 +15,8 @@
 
 @*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
 <script src="~/Scripts/jquery-3.5.1.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-@*<script src="~/Content/chart.js"></script>*@
+@*<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>*@
+<script src="~/Content/chart.js"></script>
 <!-- Small boxes (Stat box) -->
 <div class="row">
     <div class="card card-primary col-lg-6 col-12">
@@ -322,7 +322,7 @@
 <div class="row">
     <div class="card card-primary col-lg-6 col-12">
         <div class="card-header">
-            <h3 class="card-title">Last Year</h3>
+            <h3 class="card-title">Grafik Pertumbuhan 5 Tahun Terakhir Per Bulan Sekarang</h3>
 
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
@@ -331,10 +331,58 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <canvas id="chartGrowthKontribusi5Year"
-                            style="height:320px"></canvas>
+
+            <canvas id="chartGrowthKontribusi5Year"
+                    style="height:250px;"></canvas>
+
+            <div class="row mt-3">
+                <div class="col-md-6 text-center">
+                    <span id="lblGrowth"
+                          class="badge badge-success"
+                          style="font-size:14px;">
+                        Growth :
+                    </span>
+                </div>
+
+                <div class="col-md-6 text-center">
+                    <span id="lblLossRatio"
+                          class="badge badge-warning"
+                          style="font-size:14px;">
+                        Loss Ratio :
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-secondary col-lg-6 col-12">
+        <div class="card-header">
+            <h3 class="card-title">Grafik Pertumbuhan 5 Tahun Terakhir Per Bulan Lalu</h3>
+
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <canvas id="chartGrowthPrevious"
+                    style="height:250px;"></canvas>
+
+            <div class="row mt-3">
+                <div class="col-md-6 text-center">
+                    <span id="lblGrowthPrev"
+                          class="badge badge-success"
+                          style="font-size:14px;">
+                        Growth :
+                    </span>
+                </div>
+
+                <div class="col-md-6 text-center">
+                    <span id="lblLossRatioPrev"
+                          class="badge badge-warning"
+                          style="font-size:14px;">
+                        Loss Ratio :
+                    </span>
                 </div>
             </div>
         </div>
@@ -358,34 +406,149 @@
         <script src="~/Scripts/AASReport/customaas.js"></script>
 
         <script>
-            function DrawGrowthChart(labels, values) {
+            //var growthChart = null;
+            var charts = {};
 
-                var ctx = document.getElementById('chartGrowthKontribusi5Year');
-                if (!ctx) {
-                    console.log('Canvas chartGrowthKontribusi5Year tidak ditemukan');
+            function DrawGrowthChart(
+                canvasId,
+                labels,
+                kontribusi,
+                klaim,
+                lossratio
+            ) {
+
+                const canvas =
+                    document.getElementById(canvasId);
+
+                if (!canvas)
                     return;
+
+                if (charts[canvasId]) {
+                    charts[canvasId].destroy();
                 }
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Kontribusi',
-                            data: values,
-                            borderColor: '#17a2b8',
-                            backgroundColor: 'rgba(23,162,184,0.2)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
+
+                charts[canvasId] =
+                    new Chart(canvas, {
+
+                        type: 'line',
+
+                        data: {
+                            labels: labels,
+
+                            datasets: [
+
+                                {
+                                    label: 'Kontribusi',
+                                    data: kontribusi,
+                                    borderColor: '#17a2b8',
+                                    fill: false
+                                },
+
+                                {
+                                    label: 'Klaim',
+                                    data: klaim,
+                                    borderColor: '#ffc107',
+                                    fill: false
+                                },
+
+                                {
+                                    label: 'Loss Ratio (%)',
+                                    data: lossratio,
+                                    borderColor: '#28a745',
+                                    fill: false,
+                                    borderDash: [5, 5]
+                                }
+                            ]
+                        },
+
+                        options: {
+                            responsive: true,
+
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        callback: function (value) {
+                                            return formatCurrencyAxis(value);
+                                        }
+                                    }
+                                }]
+                            },
+
+                            tooltips: {
+                                callbacks: {
+
+                                    label: function (
+                                        tooltipItem,
+                                        data
+                                    ) {
+
+                                        var label =
+                                            data.datasets[
+                                                tooltipItem.datasetIndex
+                                            ].label;
+
+                                        var value =
+                                            tooltipItem.yLabel;
+
+                                        if (
+                                            label ===
+                                            'Loss Ratio (%)'
+                                        ) {
+
+                                            return label +
+                                                ' : ' +
+                                                value +
+                                                '%';
+                                        }
+
+                                        return label +
+                                            ' : ' +
+                                            formatMiliar(
+                                                Number(value)
+                                            );
+                                    }
+                                }
+                            }
+                        }
+                    });
             }
-            $(document).ready(function(){
+
+            function formatCurrencyAxis(value) {
+
+                if (value >= 1000000000000) {
+                    return 'Rp ' +
+                        (value / 1000000000000)
+                            .toFixed(1)
+                        + ' T';
+                }
+
+                if (value >= 1000000000) {
+                    return 'Rp ' +
+                        (value / 1000000000)
+                            .toFixed(1)
+                        + ' M';
+                }
+
+                if (value >= 1000000) {
+                    return 'Rp ' +
+                        (value / 1000000)
+                            .toFixed(1)
+                        + ' J';
+                }
+
+                return value.toLocaleString('id-ID');
+            }
+            function formatMiliar(value) {
+                return 'Rp ' +
+                    (value / 1000000000)
+                        .toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })
+                    + ' Miliar';
+            }
+            $(document).ready(async function(){
                 var date = new Date();
                 var fd = new Date(date.getFullYear(), date.getMonth(), 1);
                 var ld = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -719,20 +882,213 @@
                     type: 'GET',
                     data: {
                         stoken: token,
-                        iroleid: roleid
+                        iroleid: roleid,
+                        spParam: "spGrowthKontribusi5Year"
                     },
                     success: function (response) {
 
                         var tahun = [];
                         var kontribusi = [];
+                        let klaim = [];
+                        let lossratio = [];
+                        let growthTerakhir = 0;
+                        let lossRatioTerakhir = 0;
 
                         $.each(response.data, function (i, item) {
                             tahun.push(item.Tahun);
                             kontribusi.push(
                                 parseFloat(item.Kontribusi)
                             );
+                            klaim.push(
+                                parseFloat(item.Klaim)
+                            );
+                            lossratio.push(
+                                parseFloat(item.LossRatio)
+                            );
+                            growthTerakhir = item.GrowthKontribusi;
+                            lossRatioTerakhir = item.LossRatio;
                         });
-                        DrawGrowthChart(tahun, kontribusi);
+                        console.log(lossratio);
+                        DrawGrowthChart('chartGrowthKontribusi5Year',tahun, kontribusi, klaim, lossratio);
+
+                        var iconGrowth =
+                            growthTerakhir >= 0
+                                ? 'fa-arrow-up'
+                                : 'fa-arrow-down';
+
+                        $('#lblGrowth').html(
+                            '<i class="fa ' + iconGrowth + '"></i> ' +
+                            'Growth ' +
+                            tahun[tahun.length - 1] +
+                            ' : ' +
+                            parseFloat(growthTerakhir).toFixed(2) +
+                            '%'
+                        );
+                        var statusLossRatio = '';
+
+                        if (lossRatioTerakhir <= 60) {
+                            statusLossRatio = 'Healthy';
+                        }
+                        else if (lossRatioTerakhir <= 80) {
+                            statusLossRatio = 'Warning';
+                        }
+                        else {
+                            statusLossRatio = 'Critical';
+                        }
+                        
+                        $('#lblLossRatio').html(
+                            '<i class="fa fa-heartbeat"></i> ' +
+                            'Loss Ratio : ' +
+                            parseFloat(lossRatioTerakhir).toFixed(2) +
+                            '% (' +
+                            statusLossRatio +
+                            ')'
+                        );
+
+                        $('#lblGrowth')
+                            .removeClass(
+                                'badge-success badge-danger badge-warning'
+                        );
+                        if (growthTerakhir >= 0) {
+
+                            $('#lblGrowth')
+                                .addClass('badge-success');
+
+                        }
+                        else {
+
+                            $('#lblGrowth')
+                                .addClass('badge-danger');
+
+                        }
+                        
+                        if (lossRatioTerakhir <= 60) {
+
+                            $('#lblLossRatio')
+                                .removeClass()
+                                .addClass('badge badge-success');
+
+                        }
+                        else if (lossRatioTerakhir <= 80) {
+
+                            $('#lblLossRatio')
+                                .removeClass()
+                                .addClass('badge badge-warning');
+
+                        }
+                        else {
+
+                            $('#lblLossRatio')
+                                .removeClass()
+                                .addClass('badge badge-danger');
+                        }
+                    }
+                });
+                $.ajax({
+                    url: '/Home/GetGrowthKontribusi5Year',
+                    type: 'GET',
+                    data: {
+                        stoken: token,
+                        iroleid: roleid,
+                        spParam: "spGrowthKontribusi5YearPrev"
+                    },
+                    success: function (response) {
+
+                        var tahunPrev = [];
+                        var kontribusiPrev = [];
+                        let klaimPrev = [];
+                        let lossratioPrev = [];
+                        let growthTerakhirPrev = 0;
+                        let lossRatioTerakhirPrev = 0;
+
+                        $.each(response.data, function (i, item) {
+                            tahunPrev.push(item.Tahun);
+                            kontribusiPrev.push(
+                                parseFloat(item.Kontribusi)
+                            );
+                            klaimPrev.push(
+                                parseFloat(item.Klaim)
+                            );
+                            lossratioPrev.push(
+                                parseFloat(item.LossRatio)
+                            );
+                            growthTerakhirPrev = item.GrowthKontribusi;
+                            lossRatioTerakhirPrev = item.LossRatio;
+                        });
+                        console.log(lossratioPrev);
+                        DrawGrowthChart('chartGrowthPrevious',tahunPrev, kontribusiPrev, klaimPrev, lossratioPrev);
+
+                        var iconGrowthPrev =
+                            growthTerakhirPrev >= 0
+                                ? 'fa-arrow-up'
+                                : 'fa-arrow-down';
+
+                        $('#lblGrowthPrev').html(
+                            '<i class="fa ' + iconGrowthPrev + '"></i> ' +
+                            'Growth ' +
+                            tahunPrev[tahunPrev.length - 1] +
+                            ' : ' +
+                            parseFloat(growthTerakhirPrev).toFixed(2) +
+                            '%'
+                        );
+                        var statusLossRatioPrev = '';
+
+                        if (lossRatioTerakhirPrev <= 60) {
+                            statusLossRatioPrev = 'Healthy';
+                        }
+                        else if (lossRatioTerakhirPrev <= 80) {
+                            statusLossRatioPrev = 'Warning';
+                        }
+                        else {
+                            statusLossRatioPrev = 'Critical';
+                        }
+
+                        $('#lblLossRatioPrev').html(
+                            '<i class="fa fa-heartbeat"></i> ' +
+                            'Loss Ratio : ' +
+                            parseFloat(lossRatioTerakhirPrev).toFixed(2) +
+                            '% (' +
+                            statusLossRatioPrev +
+                            ')'
+                        );
+
+                        $('#lblGrowthPrev')
+                            .removeClass(
+                                'badge-success badge-danger badge-warning'
+                            );
+                        if (growthTerakhirPrev >= 0) {
+
+                            $('#lblGrowthPrev')
+                                .addClass('badge-success');
+
+                        }
+                        else {
+
+                            $('#lblGrowthPrev')
+                                .addClass('badge-danger');
+
+                        }
+
+                        if (lossRatioTerakhirPrev <= 60) {
+
+                            $('#lblLossRatioPrev')
+                                .removeClass()
+                                .addClass('badge badge-success');
+
+                        }
+                        else if (lossRatioTerakhirPrev <= 80) {
+
+                            $('#lblLossRatioPrev')
+                                .removeClass()
+                                .addClass('badge badge-warning');
+
+                        }
+                        else {
+
+                            $('#lblLossRatioPrev')
+                                .removeClass()
+                                .addClass('badge badge-danger');
+                        }
                     }
                 });
             });
