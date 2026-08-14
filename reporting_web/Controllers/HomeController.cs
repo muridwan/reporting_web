@@ -14,8 +14,18 @@ namespace reporting_web.Controllers
 {
     public class HomeController : Controller
     {
+        private bool IsLogin()
+        {
+            return Session["EmpId"] != null
+                && Session["UserName"] != null
+                && Session["RoleId"] != null
+                && Session["Token"] != null;            
+        }
         public ActionResult Index()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -207,5 +217,55 @@ namespace reporting_web.Controllers
             }
             return obj;
         }
+        
+        [HttpGet]
+        public JsonResult GetGrowthKontribusi5Year(string stoken = "", int iroleid = 0)
+        {
+            var list = GetListGrowthKontribusi5Year(stoken, iroleid);
+
+            return Json(
+                new
+                {
+                    data = list,
+                    recordsTotal = list.Count,
+                    recordsFiltered = list.Count
+                },
+                JsonRequestBehavior.AllowGet
+            );
+        }
+        public List<DataGrowthKontribusi> GetListGrowthKontribusi5Year(string token = "",int roleid = 0)
+        {
+            string constr = ConfigurationManager.ConnectionStrings["SqlDBDRC"].ConnectionString;
+
+            try
+            {
+                DataTable dt = new DataTable();
+
+                using (SqlConnection con = new SqlConnection(constr))
+                {
+                    using (SqlCommand cmd = new SqlCommand())
+                    {
+                        cmd.Connection = con;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "spGrowthKontribusi5Year";
+                        cmd.Parameters.Add("@Token", SqlDbType.VarChar).Value = token;
+                        cmd.Parameters.Add("@RoleId", SqlDbType.BigInt).Value = roleid;
+                        cmd.CommandTimeout = 1200000;
+
+                        SqlDataAdapter adpt =
+                            new SqlDataAdapter(cmd);
+
+                        adpt.Fill(dt);
+                    }
+                }
+
+                return ConvertDataTableToList<DataGrowthKontribusi>(dt);
+            }
+            catch (SqlException ex)
+            {
+                DisplaySqlErrors(ex);
+                return new List<DataGrowthKontribusi>();
+            }
+        }        
     }
 }

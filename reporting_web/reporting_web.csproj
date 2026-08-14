@@ -188,6 +188,7 @@
     <Compile Include="Models\DataBranchUser.cs" />
     <Compile Include="Models\DataCOB.cs" />
     <Compile Include="Models\DataGroupBranch.cs" />
+    <Compile Include="Models\DataGrowthKontribusi.cs" />
     <Compile Include="Models\DataKlaimSumbis.cs" />
     <Compile Include="Models\DataLabaRugiGab.cs" />
     <Compile Include="Models\DataListJurnalTrans.cs" />

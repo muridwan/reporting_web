@@ -15,6 +15,8 @@
 
 @*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
 <script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@*<script src="~/Content/chart.js"></script>*@
 <!-- Small boxes (Stat box) -->
 <div class="row">
     <div class="card card-primary col-lg-6 col-12">
@@ -317,382 +319,451 @@
    </div>
    <!-- /.card --> 
 </div>
-@section scripts
-{
-    <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>
-    <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>
-    @*<script src="~/Scripts/jquery.dataTables-1.12.1.min"></script>*@
-    <script src="~/Scripts/sum()-1.11.2.js"></script>
-    <script src="~/Scripts/dataTables.buttons-2.0.1.min.js"></script>
-    <script src="~/Scripts/jszip-3.1.3.min.js"></script>
-    <script src="~/Scripts/pdfmake-0.1.53.min.js"></script>
-    <script src="~/Scripts/vfs_fonts-0.1.53.js"></script>
-    <script src="~/Scripts/buttons.html5-2.0.1.min.js"></script>
-    <script src="~/Scripts/buttons.print-2.0.1.min.js"></script>
-    <script src="~/Content/bootstrap-multiselect.js"></script>
-    <script src="~/Scripts/dataTables.rowReorder.min.js"></script>
-    <script src="~/Scripts/dataTables.responsive.min.js"></script>
-    <script src="~/Scripts/AASReport/customaas.js"></script>
-
-    <script>
-        $(document).ready(function(){
-            var date = new Date();
-            var fd = new Date(date.getFullYear(), date.getMonth(), 1);
-            var ld = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-            var firstDay = getFormattedDate(fd);
-            var lastDay = getFormattedDate(ld);
-            var monthYear = getFormattedMonth(date);
-            var firstDayYear = getFirstDayYear(date);
-            var thisYear = date.getFullYear();
-            var fdLast = getFirstDateLast(fd);
-            var viewFirstDayYear = formatDate(firstDayYear);
-            var viewFirstDay = formatDate(firstDay);
-            var viewLastDay = formatDate(lastDay);
-            var viewFdLast =formatDate(fdLast);
-            var viewFirstDayYear = formatDate(firstDayYear);
-
-            date = new Date(fdLast);
-            var ldLast = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-            ldLast = getFormattedDate(ldLast);
-            var firstDayYearLast = getFirstDayYear(date);
-            var monthYearLast = getFormattedMonth(date);
-            var viewFirstDayYearLast = formatDate(firstDayYearLast);
-            var viewLdLast = formatDate(ldLast);
-            var token = "@Session["Token"]";
-            var roleid = @Session["RoleId"];
-            //current
-            $.ajax({
-                url:'/home/GetSumProduksiKlaim/',
-                data: {'SDate':firstDay,'EDate':lastDay,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumProd').show();
-                                $('#spinJumKlaim').show();
-                                $('#spinJumSubro').show();
-                            },
-                complete: function(){
-                                $('#spinJumProd').hide();
-                                $('#spinJumKlaim').hide();
-                                $('#spinJumSubro').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $('#jumProd').html(number_format(this['Kontribusi'],2,'.',','));
-                        $('#jumKlaim').html(number_format(this['Klaim'], 2, '.', ','));
-                        $('#jumSubro').html(number_format(this['Subrogasi'], 2, '.', ','));
-                    });
-                },
-            });
-            $.ajax({
-                url:'/home/GetSumProduksiKlaim/',
-                data: {'SDate':firstDayYear,'EDate':lastDay,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumProdThisYear').show();
-                                $('#spinJumKlaimThisYear').show();
-                                $('#spinJumSubroThisYear').show();
-                            },
-                complete: function(){
-                                $('#spinJumProdThisYear').hide();
-                                $('#spinJumKlaimThisYear').hide();
-                                $('#spinJumSubroThisYear').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $senRKAPKontrib = (this['Kontribusi']/this['RKAPKontribusi']) * 100;
-                        $senRKAPKlaim = (this['Klaim']/this['RKAPKlaimBruto']) * 100;
-                        $senGSKontrib = (this['Kontribusi'] / this['GSKontribusi']) * 100;
-                        $senRKAPKontribMonth = (this['Kontribusi'] / this['RKAPBulan']) * 100;
-                        $senGSKontribMonth = (this['Kontribusi'] / this['GSBulan']) * 100;
-                        if(roleid<10)
-                            $('#jumProdThisYear').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senRKAPKontrib, 2, '.', ',') + '% RKAP/Thn)<br>(' + number_format($senRKAPKontribMonth, 2, '.', ',') +'% RKAP/Bln)');
-                        else
-                            $('#jumProdThisYear').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senGSKontrib, 2, '.', ',') + '% GS/Thn)' + '<br>(' + number_format($senGSKontribMonth, 2, '.', ',') + '% GS/Bln)');
-                        $('#jumKlaimThisYear').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
-                        $('#jumSubroThisYear').html(number_format(this['Subrogasi'], 2, '.', ','));
-                    });
-                },
-            });
-            $.ajax({
-                url:'/FinAcc/GetDataLabaRugiPeriode/',
-                data: {'sdate':firstDay,'edate':lastDay,'branch':"AS",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumLabaSetPajak').show();
-                            },
-                complete: function(){
-                                $('#spinJumLabaSetPajak').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $('#jumLabaSetPajak').html(number_format(this['LabaSetelahPajak'],2,'.',','));
-                    });
-                },
-            });
-            $.ajax({
-                url:'/FinAcc/GetDataLabaRugiPeriode/',
-                data: {'sdate':firstDayYear,'edate':lastDay,'branch':"AS",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumLabaSetPajakYear').show();
-                            },
-                complete: function(){
-                                $('#spinJumLabaSetPajakYear').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $senLabaSetelahPajak = (this['LabaSetelahPajak']/this['RKAPLabaSetelahPajak']) * 100;
-                        $('#jumLabaSetPajakYear').html(number_format(this['LabaSetelahPajak'],2,'.',',')+ '<br>(' + number_format($senLabaSetelahPajak,2,'.',',') + '% RKAP)');
-                    });
-                },
-            });
-            $.ajax({
-                url:'/FinAcc/GetDataSurplusTabarruPeriode',
-                data: {'sdate':firstDayYear,'edate':lastDay},
-                beforeSend: function(){
-                                $('#spinJumSurplusTabarruYear').show();
-                            },
-                complete: function(){
-                                $('#spinJumSurplusTabarruYear').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function(data){
-                    $.each(data.data, function() {
-                        $('#jumSurplusTabarruYear').html(number_format(this['SaldoAkhirDanaTabarru'],2,'.',','));
-                    });
-                },
-            });
-            //end current
-            //Last
-            $.ajax({
-                url:'/home/GetSumProduksiKlaim/',
-                data: {'SDate':fdLast,'EDate':ldLast,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumProdLast').show();
-                                $('#spinJumKlaimLast').show();
-                                $('#spinJumSubroLast').show();
-                            },
-                complete: function(){
-                                $('#spinJumProdLast').hide();
-                                $('#spinJumKlaimLast').hide();
-                                $('#spinJumSubroLast').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $('#jumProdLast').html(number_format(this['Kontribusi'],2,'.',','));
-                        $('#jumKlaimLast').html(number_format(this['Klaim'], 2, '.', ','));
-                        $('#jumSubroLast').html(number_format(this['Subrogasi'], 2, '.', ','));
-                    });
-                },
-            });
-            $.ajax({
-                url:'/home/GetSumProduksiKlaim/',
-                data: {'SDate':firstDayYearLast,'EDate':ldLast,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumProdThisYearLast').show();
-                                $('#spinJumKlaimThisYearLast').show();
-                                $('#spinJumSubroThisYearLast').show();
-                            },
-                complete: function(){
-                                $('#spinJumProdThisYearLast').hide();
-                                $('#spinJumKlaimThisYearLast').hide();
-                                $('#spinJumSubroThisYearLast').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $senRKAPKontrib = (this['Kontribusi']/this['RKAPKontribusi']) * 100;
-                        $senRKAPKlaim = (this['Klaim']/this['RKAPKlaimBruto']) * 100;
-                        $senGSKontrib = (this['Kontribusi'] / this['GSKontribusi']) * 100;
-                        $senRKAPKontribMonth = (this['Kontribusi'] / this['RKAPBulan']) * 100;
-                        $senGSKontribMonth = (this['Kontribusi'] / this['GSBulan']) * 100;
-                        if(roleid<10)
-                            $('#jumProdThisYearLast').html(number_format(this['Kontribusi'],2,'.',',')+'<br>('+number_format($senRKAPKontrib,2,'.',',')+'% RKAP/Thn)'+'<br>('+number_format($senRKAPKontribMonth,2,'.',',')+ '% RKAP/Bln)' );
-                        else
-                            $('#jumProdThisYearLast').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senGSKontrib, 2, '.', ',') + '% GS/Thn)' + '<br>(' + number_format($senGSKontribMonth, 2, '.', ',') + '% GS/Bln)');                        
-                        $('#jumKlaimThisYearLast').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
-                        $('#jumSubroThisYearLast').html(number_format(this['Subrogasi'], 2, '.', ','));
-                    });
-                },
-            });
-            $.ajax({
-                url:'/FinAcc/GetDataLabaRugiPeriode/',
-                data: {'sdate':fdLast,'edate':ldLast,'branch':"AS",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumLabaSetPajakLast').show();
-                            },
-                complete: function(){
-                                $('#spinJumLabaSetPajakLast').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $('#jumLabaSetPajakLast').html(number_format(this['LabaSetelahPajak'],2,'.',','));
-                    });
-                },
-            });
-            $.ajax({
-                url:'/FinAcc/GetDataLabaRugiPeriode/',
-                data: {'sdate':firstDayYearLast,'edate':ldLast,'branch':"AS",'stoken':token,'iroleid':roleid},
-                beforeSend: function(){
-                                $('#spinJumLabaSetPajakYearLast').show();
-                            },
-                complete: function(){
-                                $('#spinJumLabaSetPajakYearLast').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function (data) {
-                    $.each(data.data, function() {
-                        $senLabaSetelahPajak = (this['LabaSetelahPajak']/this['RKAPLabaSetelahPajak']) * 100;
-                        $('#jumLabaSetPajakYearLast').html(number_format(this['LabaSetelahPajak'],2,'.',',')+ '<br>(' + number_format($senLabaSetelahPajak,2,'.',',') + '% RKAP)');
-                    });
-                },
-            });
-            $.ajax({
-                url:'/FinAcc/GetDataSurplusTabarruPeriode',
-                data: {'sdate':firstDayYearLast,'edate':ldLast},
-                beforeSend: function(){
-                                $('#spinJumSurplusTabarruYearLast').show();
-                            },
-                complete: function(){
-                                $('#spinJumSurplusTabarruYearLast').hide();
-                          },
-                dataType: 'json',
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                success: function(data){
-                    $.each(data.data, function() {
-                        $('#jumSurplusTabarruYearLast').html(number_format(this['SaldoAkhirDanaTabarru'],2,'.',','));
-                    });
-                },
-            });
-            //end last
-            $.ajax({
-                url: '/master/getsysInfo/?stype=PRD',
-                dataType: "json",
-                type: "GET",
-                contentType: "application/json; charset=utf-8",
-                'async': false,
-                success: function (data) {
-                    //var dataPer = 'Jumlah Kontribusi ' + monthYear + '<br> Data Update Per:' + data[0].datecomplete;
-                    var dataPer = 'Kontribusi Periode : <br>' + viewFirstDay + ' sd ' + viewLastDay;
-                    //var dataPerLast = 'Jumlah Kontribusi ' + monthYearLast  + '<br> Data Update Per:' + data[0].datecomplete;
-                    var dataPerLast = 'Kontribusi Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
-                    $('#desPriode').html(dataPer);
-                    $('#desProd').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriodeLast').html(dataPerLast);
-                    $('#desProdLast').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriodeYear').html('Kontribusi Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
-                    $('#desPriodeYearLast').html('Kontribusi Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
-                    $('#desProdThisYear').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desProdThisYearLast').html('Data Update Per:' + data[0].datecomplete);
-                },
-            });
-
-            $.ajax({
-                url: '/master/getsysInfo/?stype=CLM',
-                dataType: "json",
-                type: "GET",
-                contentType: "application/json; charset=utf-8",
-                'async': false,
-                success: function (data) {
-                   // var dataPer = 'Jumlah Klaim ' + monthYear + '<br> Data Update Per:' + data[0].datecomplete;
-                    var dataPer = 'Klaim Periode : <br>' + viewFirstDay + ' sd ' + viewLastDay;
-                    //var dataPerLast = 'Klaim Periode : ' + monthYearLast + '<br> Data Update Per:' + data[0].datecomplete;
-                    var dataPerLast = 'Klaim Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
-                    var dataSubroPer = 'Subrogasi Periode: <br>' + viewFirstDay + ' sd ' + viewLastDay;
-                    var dataSubroPerLast = 'Subrogasi Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
-                    
-                    $('#desPriodeKlaim').html(dataPer);
-                    $('#desPriodeSubro').html(dataSubroPer);
-                    $('#desKlaim').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desSubro').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriodeKlaimLast').html(dataPerLast);
-                    $('#desPriodeSubroLast').html(dataSubroPerLast);
-                    $('#desKlaimLast').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desSubroLast').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriodeKlaimYear').html('Klaim Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
-                    $('#desPriodeSubroYear').html('Subrogasi Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
-                    $('#desKlaimThisYear').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desSubroThisYear').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriodeKlaimYearLast').html('Klaim Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
-                    $('#desPriodeSubroYearLast').html('Subrogasi Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
-                    $('#desKlaimThisYearLast').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desSubroThisYearLast').html('Data Update Per:' + data[0].datecomplete);
-                },
-            });
-            $.ajax({
-                url: '/master/getsysInfo/?stype=ACC',
-                dataType: "json",
-                type: "GET",
-                contentType: "application/json; charset=utf-8",
-                'async': false,
-                success: function (data) {
-                    //var dataPer = 'Laba Rugi Gabungan Setelah Pajak Bulan ' + monthYear + '<br> Data Update Per:' + data[0].datecomplete;
-                    var dataPer = 'Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFirstDay + ' sd ' + viewLastDay;
-                    var dataPerLast = 'Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFdLast + 'sd ' + viewLdLast;
-                    $('#desPriLabaSetPajak').html(dataPer);
-                    $('#desjumLabaSetPajak').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desjumLabaSetPajakLast').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriLabaSetPajakLast').html(dataPerLast);
-                    $('#desPriLabaSetPajakYear').html('Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFirstDayYear + ' sd ' + viewLastDay);
-                    $('#desjumLabaSetPajakYear').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desPriLabaSetPajakYearLast').html('Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFirstDayYearLast + ' sd ' + viewLdLast);
-                    $('#desjumLabaSetPajakYearLast').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desSurplusTabarruYear').html('Surplus (Defisit) Tabarru <br>Periode : ' + viewFirstDayYear + ' sd ' + viewLastDay);
-                    $('#desjumSurplusTabarruYear').html('Data Update Per:' + data[0].datecomplete);
-                    $('#desSurplusTabarruYearLast').html('Surplus (Defisit) Tabarru <br>Periode : ' + viewFirstDayYearLast + ' sd ' + viewLdLast);
-                    $('#desjumSurplusTabarruYearLast').html('Data Update Per:' + data[0].datecomplete);
-                },
-            });
-
-        });
-    </script>
-}
-<!-- Small boxes (End box) -->
-@*<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
-
 <div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+    <div class="card card-primary col-lg-6 col-12">
+        <div class="card-header">
+            <h3 class="card-title">Last Year</h3>
+
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <canvas id="chartGrowthKontribusi5Year"
+                            style="height:320px"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>*@
+</div>
+    @section scripts
+{
+        <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>
+        <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>
+        @*<script src="~/Scripts/jquery.dataTables-1.12.1.min"></script>*@
+        <script src="~/Scripts/sum()-1.11.2.js"></script>
+        <script src="~/Scripts/dataTables.buttons-2.0.1.min.js"></script>
+        <script src="~/Scripts/jszip-3.1.3.min.js"></script>
+        <script src="~/Scripts/pdfmake-0.1.53.min.js"></script>
+        <script src="~/Scripts/vfs_fonts-0.1.53.js"></script>
+        <script src="~/Scripts/buttons.html5-2.0.1.min.js"></script>
+        <script src="~/Scripts/buttons.print-2.0.1.min.js"></script>
+        <script src="~/Content/bootstrap-multiselect.js"></script>
+        <script src="~/Scripts/dataTables.rowReorder.min.js"></script>
+        <script src="~/Scripts/dataTables.responsive.min.js"></script>
+        <script src="~/Scripts/AASReport/customaas.js"></script>
+
+        <script>
+            function DrawGrowthChart(labels, values) {
+
+                var ctx = document.getElementById('chartGrowthKontribusi5Year');
+                if (!ctx) {
+                    console.log('Canvas chartGrowthKontribusi5Year tidak ditemukan');
+                    return;
+                }
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Kontribusi',
+                            data: values,
+                            borderColor: '#17a2b8',
+                            backgroundColor: 'rgba(23,162,184,0.2)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            $(document).ready(function(){
+                var date = new Date();
+                var fd = new Date(date.getFullYear(), date.getMonth(), 1);
+                var ld = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                var firstDay = getFormattedDate(fd);
+                var lastDay = getFormattedDate(ld);
+                var monthYear = getFormattedMonth(date);
+                var firstDayYear = getFirstDayYear(date);
+                var thisYear = date.getFullYear();
+                var fdLast = getFirstDateLast(fd);
+                var viewFirstDayYear = formatDate(firstDayYear);
+                var viewFirstDay = formatDate(firstDay);
+                var viewLastDay = formatDate(lastDay);
+                var viewFdLast =formatDate(fdLast);
+                var viewFirstDayYear = formatDate(firstDayYear);
+
+                date = new Date(fdLast);
+                var ldLast = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                ldLast = getFormattedDate(ldLast);
+                var firstDayYearLast = getFirstDayYear(date);
+                var monthYearLast = getFormattedMonth(date);
+                var viewFirstDayYearLast = formatDate(firstDayYearLast);
+                var viewLdLast = formatDate(ldLast);
+                var token = "@Session["Token"]";
+                var roleid = @Session["RoleId"];
+                //current
+                $.ajax({
+                    url:'/home/GetSumProduksiKlaim/',
+                    data: {'SDate':firstDay,'EDate':lastDay,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumProd').show();
+                                    $('#spinJumKlaim').show();
+                                    $('#spinJumSubro').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumProd').hide();
+                                    $('#spinJumKlaim').hide();
+                                    $('#spinJumSubro').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $('#jumProd').html(number_format(this['Kontribusi'],2,'.',','));
+                            $('#jumKlaim').html(number_format(this['Klaim'], 2, '.', ','));
+                            $('#jumSubro').html(number_format(this['Subrogasi'], 2, '.', ','));
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/home/GetSumProduksiKlaim/',
+                    data: {'SDate':firstDayYear,'EDate':lastDay,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumProdThisYear').show();
+                                    $('#spinJumKlaimThisYear').show();
+                                    $('#spinJumSubroThisYear').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumProdThisYear').hide();
+                                    $('#spinJumKlaimThisYear').hide();
+                                    $('#spinJumSubroThisYear').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $senRKAPKontrib = (this['Kontribusi']/this['RKAPKontribusi']) * 100;
+                            $senRKAPKlaim = (this['Klaim']/this['RKAPKlaimBruto']) * 100;
+                            $senGSKontrib = (this['Kontribusi'] / this['GSKontribusi']) * 100;
+                            $senRKAPKontribMonth = (this['Kontribusi'] / this['RKAPBulan']) * 100;
+                            $senGSKontribMonth = (this['Kontribusi'] / this['GSBulan']) * 100;
+                            if(roleid<10)
+                                $('#jumProdThisYear').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senRKAPKontrib, 2, '.', ',') + '% RKAP/Thn)<br>(' + number_format($senRKAPKontribMonth, 2, '.', ',') +'% RKAP/Bln)');
+                            else
+                                $('#jumProdThisYear').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senGSKontrib, 2, '.', ',') + '% GS/Thn)' + '<br>(' + number_format($senGSKontribMonth, 2, '.', ',') + '% GS/Bln)');
+                            $('#jumKlaimThisYear').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
+                            $('#jumSubroThisYear').html(number_format(this['Subrogasi'], 2, '.', ','));
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/FinAcc/GetDataLabaRugiPeriode/',
+                    data: {'sdate':firstDay,'edate':lastDay,'branch':"AS",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumLabaSetPajak').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumLabaSetPajak').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $('#jumLabaSetPajak').html(number_format(this['LabaSetelahPajak'],2,'.',','));
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/FinAcc/GetDataLabaRugiPeriode/',
+                    data: {'sdate':firstDayYear,'edate':lastDay,'branch':"AS",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumLabaSetPajakYear').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumLabaSetPajakYear').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $senLabaSetelahPajak = (this['LabaSetelahPajak']/this['RKAPLabaSetelahPajak']) * 100;
+                            $('#jumLabaSetPajakYear').html(number_format(this['LabaSetelahPajak'],2,'.',',')+ '<br>(' + number_format($senLabaSetelahPajak,2,'.',',') + '% RKAP)');
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/FinAcc/GetDataSurplusTabarruPeriode',
+                    data: {'sdate':firstDayYear,'edate':lastDay},
+                    beforeSend: function(){
+                                    $('#spinJumSurplusTabarruYear').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumSurplusTabarruYear').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(data){
+                        $.each(data.data, function() {
+                            $('#jumSurplusTabarruYear').html(number_format(this['SaldoAkhirDanaTabarru'],2,'.',','));
+                        });
+                    },
+                });
+                //end current
+                //Last
+                $.ajax({
+                    url:'/home/GetSumProduksiKlaim/',
+                    data: {'SDate':fdLast,'EDate':ldLast,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumProdLast').show();
+                                    $('#spinJumKlaimLast').show();
+                                    $('#spinJumSubroLast').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumProdLast').hide();
+                                    $('#spinJumKlaimLast').hide();
+                                    $('#spinJumSubroLast').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $('#jumProdLast').html(number_format(this['Kontribusi'],2,'.',','));
+                            $('#jumKlaimLast').html(number_format(this['Klaim'], 2, '.', ','));
+                            $('#jumSubroLast').html(number_format(this['Subrogasi'], 2, '.', ','));
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/home/GetSumProduksiKlaim/',
+                    data: {'SDate':firstDayYearLast,'EDate':ldLast,'spName':"spSumProduksiKlaim",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumProdThisYearLast').show();
+                                    $('#spinJumKlaimThisYearLast').show();
+                                    $('#spinJumSubroThisYearLast').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumProdThisYearLast').hide();
+                                    $('#spinJumKlaimThisYearLast').hide();
+                                    $('#spinJumSubroThisYearLast').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $senRKAPKontrib = (this['Kontribusi']/this['RKAPKontribusi']) * 100;
+                            $senRKAPKlaim = (this['Klaim']/this['RKAPKlaimBruto']) * 100;
+                            $senGSKontrib = (this['Kontribusi'] / this['GSKontribusi']) * 100;
+                            $senRKAPKontribMonth = (this['Kontribusi'] / this['RKAPBulan']) * 100;
+                            $senGSKontribMonth = (this['Kontribusi'] / this['GSBulan']) * 100;
+                            if(roleid<10)
+                                $('#jumProdThisYearLast').html(number_format(this['Kontribusi'],2,'.',',')+'<br>('+number_format($senRKAPKontrib,2,'.',',')+'% RKAP/Thn)'+'<br>('+number_format($senRKAPKontribMonth,2,'.',',')+ '% RKAP/Bln)' );
+                            else
+                                $('#jumProdThisYearLast').html(number_format(this['Kontribusi'], 2, '.', ',') + '<br>(' + number_format($senGSKontrib, 2, '.', ',') + '% GS/Thn)' + '<br>(' + number_format($senGSKontribMonth, 2, '.', ',') + '% GS/Bln)');
+                            $('#jumKlaimThisYearLast').html(number_format(this['Klaim'], 2, '.', ',') + '<br>(' + number_format($senRKAPKlaim, 2, '.', ',') + '% RKAP)');
+                            $('#jumSubroThisYearLast').html(number_format(this['Subrogasi'], 2, '.', ','));
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/FinAcc/GetDataLabaRugiPeriode/',
+                    data: {'sdate':fdLast,'edate':ldLast,'branch':"AS",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumLabaSetPajakLast').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumLabaSetPajakLast').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $('#jumLabaSetPajakLast').html(number_format(this['LabaSetelahPajak'],2,'.',','));
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/FinAcc/GetDataLabaRugiPeriode/',
+                    data: {'sdate':firstDayYearLast,'edate':ldLast,'branch':"AS",'stoken':token,'iroleid':roleid},
+                    beforeSend: function(){
+                                    $('#spinJumLabaSetPajakYearLast').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumLabaSetPajakYearLast').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $.each(data.data, function() {
+                            $senLabaSetelahPajak = (this['LabaSetelahPajak']/this['RKAPLabaSetelahPajak']) * 100;
+                            $('#jumLabaSetPajakYearLast').html(number_format(this['LabaSetelahPajak'],2,'.',',')+ '<br>(' + number_format($senLabaSetelahPajak,2,'.',',') + '% RKAP)');
+                        });
+                    },
+                });
+                $.ajax({
+                    url:'/FinAcc/GetDataSurplusTabarruPeriode',
+                    data: {'sdate':firstDayYearLast,'edate':ldLast},
+                    beforeSend: function(){
+                                    $('#spinJumSurplusTabarruYearLast').show();
+                                },
+                    complete: function(){
+                                    $('#spinJumSurplusTabarruYearLast').hide();
+                              },
+                    dataType: 'json',
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(data){
+                        $.each(data.data, function() {
+                            $('#jumSurplusTabarruYearLast').html(number_format(this['SaldoAkhirDanaTabarru'],2,'.',','));
+                        });
+                    },
+                });
+                //end last
+                $.ajax({
+                    url: '/master/getsysInfo/?stype=PRD',
+                    dataType: "json",
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    'async': false,
+                    success: function (data) {
+                        //var dataPer = 'Jumlah Kontribusi ' + monthYear + '<br> Data Update Per:' + data[0].datecomplete;
+                        var dataPer = 'Kontribusi Periode : <br>' + viewFirstDay + ' sd ' + viewLastDay;
+                        //var dataPerLast = 'Jumlah Kontribusi ' + monthYearLast  + '<br> Data Update Per:' + data[0].datecomplete;
+                        var dataPerLast = 'Kontribusi Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
+                        $('#desPriode').html(dataPer);
+                        $('#desProd').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desPriodeLast').html(dataPerLast);
+                        $('#desProdLast').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desPriodeYear').html('Kontribusi Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
+                        $('#desPriodeYearLast').html('Kontribusi Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
+                        $('#desProdThisYear').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desProdThisYearLast').html('Data Update Per:' + data[0].datecomplete);
+                    },
+                });
+
+                $.ajax({
+                    url: '/master/getsysInfo/?stype=CLM',
+                    dataType: "json",
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    'async': false,
+                    success: function (data) {
+                       // var dataPer = 'Jumlah Klaim ' + monthYear + '<br> Data Update Per:' + data[0].datecomplete;
+                        var dataPer = 'Klaim Periode : <br>' + viewFirstDay + ' sd ' + viewLastDay;
+                        //var dataPerLast = 'Klaim Periode : ' + monthYearLast + '<br> Data Update Per:' + data[0].datecomplete;
+                        var dataPerLast = 'Klaim Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
+                        var dataSubroPer = 'Subrogasi Periode: <br>' + viewFirstDay + ' sd ' + viewLastDay;
+                        var dataSubroPerLast = 'Subrogasi Periode : <br>' + viewFdLast + ' sd ' + viewLdLast;
+
+                        $('#desPriodeKlaim').html(dataPer);
+                        $('#desPriodeSubro').html(dataSubroPer);
+                        $('#desKlaim').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desSubro').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desPriodeKlaimLast').html(dataPerLast);
+                        $('#desPriodeSubroLast').html(dataSubroPerLast);
+                        $('#desKlaimLast').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desSubroLast').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desPriodeKlaimYear').html('Klaim Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
+                        $('#desPriodeSubroYear').html('Subrogasi Periode : <br>' + viewFirstDayYear + ' sd ' + viewLastDay);
+                        $('#desKlaimThisYear').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desSubroThisYear').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desPriodeKlaimYearLast').html('Klaim Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
+                        $('#desPriodeSubroYearLast').html('Subrogasi Periode : <br>' + viewFirstDayYearLast + ' sd ' + viewLdLast);
+                        $('#desKlaimThisYearLast').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desSubroThisYearLast').html('Data Update Per:' + data[0].datecomplete);
+                    },
+                });
+                $.ajax({
+                    url: '/master/getsysInfo/?stype=ACC',
+                    dataType: "json",
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    'async': false,
+                    success: function (data) {
+                        //var dataPer = 'Laba Rugi Gabungan Setelah Pajak Bulan ' + monthYear + '<br> Data Update Per:' + data[0].datecomplete;
+                        var dataPer = 'Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFirstDay + ' sd ' + viewLastDay;
+                        var dataPerLast = 'Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFdLast + 'sd ' + viewLdLast;
+                        $('#desPriLabaSetPajak').html(dataPer);
+                        $('#desjumLabaSetPajak').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desjumLabaSetPajakLast').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desPriLabaSetPajakLast').html(dataPerLast);
+                        $('#desPriLabaSetPajakYear').html('Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFirstDayYear + ' sd ' + viewLastDay);
+                        $('#desjumLabaSetPajakYear').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desPriLabaSetPajakYearLast').html('Laba Rugi Gabungan Setelah Pajak Periode : ' + viewFirstDayYearLast + ' sd ' + viewLdLast);
+                        $('#desjumLabaSetPajakYearLast').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desSurplusTabarruYear').html('Surplus (Defisit) Tabarru <br>Periode : ' + viewFirstDayYear + ' sd ' + viewLastDay);
+                        $('#desjumSurplusTabarruYear').html('Data Update Per:' + data[0].datecomplete);
+                        $('#desSurplusTabarruYearLast').html('Surplus (Defisit) Tabarru <br>Periode : ' + viewFirstDayYearLast + ' sd ' + viewLdLast);
+                        $('#desjumSurplusTabarruYearLast').html('Data Update Per:' + data[0].datecomplete);
+                    },
+                });
+                $.ajax({
+                    url: '/Home/GetGrowthKontribusi5Year',
+                    type: 'GET',
+                    data: {
+                        stoken: token,
+                        iroleid: roleid
+                    },
+                    success: function (response) {
+
+                        var tahun = [];
+                        var kontribusi = [];
+
+                        $.each(response.data, function (i, item) {
+                            tahun.push(item.Tahun);
+                            kontribusi.push(
+                                parseFloat(item.Kontribusi)
+                            );
+                        });
+                        DrawGrowthChart(tahun, kontribusi);
+                    }
+                });
+            });
+
+        </script>
+    }
+    <!-- Small boxes (End box) -->
+    @*<div class="jumbotron">
+            <h1>ASP.NET</h1>
+            <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+            <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Getting started</h2>
+                <p>
+                    ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
+                    enables a clean separation of concerns and gives you full control over markup
+                    for enjoyable, agile development.
+                </p>
+                <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+            </div>
+            <div class="col-md-4">
+                <h2>Get more libraries</h2>
+                <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
+                <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+            </div>
+            <div class="col-md-4">
+                <h2>Web Hosting</h2>
+                <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
+                <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+            </div>
+        </div>*@
