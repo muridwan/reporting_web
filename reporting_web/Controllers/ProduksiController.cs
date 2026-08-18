@@ -13,16 +13,28 @@ using System.Web;
 using System.Web.Mvc;
 using reporting_web.Security;
 using System.Text.RegularExpressions;
+using System.Web.UI.WebControls;
 
 namespace reporting_web.Controllers
 {
     public class ProduksiController : Controller
-    {      
-                      
+    {
+
+        private bool IsLogin()
+        {
+            return Session["EmpId"] != null
+                && Session["UserName"] != null
+                && Session["RoleId"] != null
+                && Session["Token"] != null;
+        }
+
 
         // GET: Produksi
         public ActionResult GetDataProduksi()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -47,6 +59,9 @@ namespace reporting_web.Controllers
 
         public ActionResult DataPersenKontribusiCbg()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -79,6 +94,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataRatioTabarruCbg()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -111,6 +129,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKontribusiUsia()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -135,6 +156,9 @@ namespace reporting_web.Controllers
 
         public ActionResult DataPersenJumlahUsia()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -159,6 +183,9 @@ namespace reporting_web.Controllers
 
         public ActionResult DataPersenJumlahTSI()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -183,6 +210,9 @@ namespace reporting_web.Controllers
 
         public ActionResult DataPersenJumlahKontribusi()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -207,6 +237,27 @@ namespace reporting_web.Controllers
 
         public ActionResult DataPersenKontribusiSgm()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
+            using (DataBranch db = new DataBranch())
+            {
+                var result = (from BranchList in db.Branches select BranchList).ToList();
+                if (result != null)
+                {
+                    ViewBag.BranchCode = result.Select(x => new SelectListItem { Text = x.Name, Value = x.Branch1.ToString() });
+                }
+            }
+
+            using (DataTOC db = new DataTOC())
+            {
+                var result = (from TOCList in db.TOCs select TOCList).ToList();
+                if (result != null)
+                {
+                    ViewBag.COBID = result.Select(x => new SelectListItem { Text = x.DESCRIPTION, Value = x.TOC1.ToString() });
+                }
+            }
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -230,7 +281,10 @@ namespace reporting_web.Controllers
         }
 
         public ActionResult ViewMoreKontribusi(string status)
-        {            
+        {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             ViewBag.STATUS = status;
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
@@ -255,6 +309,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult ViewMoreKontribusiCob(string status, string kdcbg)
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             ViewBag.STATUS = status;
             ViewBag.CBG = kdcbg;            
             VerifiyToken menu = new VerifiyToken();
@@ -280,6 +337,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult ViewMoreKontribusiSgm(string status, string kdcbg)
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             ViewBag.STATUS = status;
             ViewBag.CBG = kdcbg;            
             VerifiyToken menu = new VerifiyToken();
@@ -305,6 +365,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult ViewMoreKontribusiMkt(string status, string kdcbg)
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             ViewBag.STATUS = status;
             ViewBag.CBG = kdcbg;
             VerifiyToken menu = new VerifiyToken();
@@ -623,11 +686,28 @@ namespace reporting_web.Controllers
                 DisplaySqlErrors(ex);
                 return null;
             }
-
         }
 
-        public List<DataPersenKontribusiSgm> GetDataPersenKontribusiSgm(string SDate, string EDate, string spName)
+        public List<DataPersenKontribusiSgm> GetDataPersenKontribusiSgm(string SDate, string EDate, string spName, string COB, string TOC, List<string> ListTOC)
         {
+            string[] listTOC = { "%" };
+            DataTable tvp = new DataTable();
+            if (ListTOC != null)
+            {
+                var searchCountList = ListTOC.Count(s => { return Regex.IsMatch(s, "^"); });
+                tvp.Columns.Add(new DataColumn("TOC", typeof(String)));
+                for (int i = 0; i < searchCountList; i++)
+                {
+                    listTOC = ListTOC[i].Split(new string[] { "," }, StringSplitOptions.None);
+                    tvp.Rows.Add(listTOC);
+                }
+            }
+            else
+            {
+                tvp.Columns.Add(new DataColumn("TOC", typeof(String)));
+                tvp.Rows.Add(listTOC);
+            }
+
             string constr = ConfigurationManager.ConnectionStrings["SqlDBDRC"].ConnectionString;
             try
             {
@@ -640,6 +720,12 @@ namespace reporting_web.Controllers
                 cmd.CommandText = spName;
                 cmd.Parameters.Add("@SDate", SqlDbType.DateTime).Value = DateTime.Parse(SDate);
                 cmd.Parameters.Add("@EDate", SqlDbType.DateTime).Value = DateTime.Parse(EDate);
+                cmd.Parameters.Add("@COB", SqlDbType.VarChar).Value = COB;
+                cmd.Parameters.Add("@TOC", SqlDbType.VarChar).Value = TOC;
+                cmd.Parameters.Add("@ListTOC", SqlDbType.Structured);
+                cmd.Parameters["@ListTOC"].Direction = ParameterDirection.Input;
+                cmd.Parameters["@ListTOC"].TypeName = "dbo.toc_list_tbltype";
+                cmd.Parameters["@ListTOC"].Value = tvp;
                 cmd.CommandTimeout = 1200000;
                 SqlDataAdapter adpt = new SqlDataAdapter(cmd);
                 adpt.Fill(dt);
@@ -859,7 +945,7 @@ namespace reporting_web.Controllers
             }
             else if (TypeReport == "PERSENKONTRIBUSISGM")
             {
-                var list = GetDataPersenKontribusiSgm(SDate, EDate, "spGetPersenKontribusiSegment"); // list of records to be displayed in datatable
+                var list = GetDataPersenKontribusiSgm(SDate, EDate, "spGetPersenKontribusiSegment", COB, TOC, ListTOC); // list of records to be displayed in datatable
                 return Json(new
                 {
                     data = list,

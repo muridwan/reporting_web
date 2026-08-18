@@ -17,9 +17,19 @@ namespace reporting_web.Controllers
 {
     public class KlaimController : Controller
     {
+        private bool IsLogin()
+        {
+            return Session["EmpId"] != null
+                && Session["UserName"] != null
+                && Session["RoleId"] != null
+                && Session["Token"] != null;
+        }
         // GET: Klaim
         public ActionResult Index()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -44,6 +54,9 @@ namespace reporting_web.Controllers
 
         public ActionResult GetDataSettleKlaim()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
             if (idrole == 1)
@@ -68,6 +81,9 @@ namespace reporting_web.Controllers
 
         public ActionResult DataKlaimSubro()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataBranch db = new DataBranch())
             {
                 var result = (from BranchList in db.Branches select BranchList).ToList();
@@ -109,6 +125,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKlaimCbg()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -140,6 +159,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKlaimUYear()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -171,6 +193,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKlaimCOL()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataBranch db = new DataBranch())
             {
                 var result = (from BranchList in db.Branches select BranchList).ToList();
@@ -211,6 +236,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKlaimUsiaDie()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -242,6 +270,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenJumKlaimWaktuDie()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -273,6 +304,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKlaimUsiaWaktuDie()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -304,6 +338,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenKlaimDescLossDie()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -335,6 +372,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataPersenJumKlaimUsiaPHK()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -366,6 +406,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult DataKlaimSumbis()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -398,6 +441,9 @@ namespace reporting_web.Controllers
 
         public ActionResult DataPersenJumKlaimUsiaKrm()
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             using (DataTOC db = new DataTOC())
             {
                 var result = (from TOCList in db.TOCs select TOCList).ToList();
@@ -429,6 +475,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult ViewMoreKlaim(string status)
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             ViewBag.STATUS = status;
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
@@ -453,6 +502,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult ViewMoreSubrogasi(string status)
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             ViewBag.STATUS = status;
             VerifiyToken menu = new VerifiyToken();
             long idrole = Int64.Parse(Session["RoleId"].ToString());
@@ -477,6 +529,9 @@ namespace reporting_web.Controllers
         }
         public ActionResult ViewMoreKlaimCOB(string status, string kdcbg)
         {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
             ViewBag.STATUS = status;
             ViewBag.CBG = kdcbg;
             VerifiyToken menu = new VerifiyToken();
@@ -501,7 +556,7 @@ namespace reporting_web.Controllers
             return View();
         }
         private static void DisplaySqlErrors(SqlException exception)
-        {
+        {            
             for (int i = 0; i < exception.Errors.Count; i++)
             {
                 Console.WriteLine("Index #" + i + "\n" +
@@ -511,7 +566,7 @@ namespace reporting_web.Controllers
         }
 
         public void GetDataKlaimSettle(string Sdate, string Edate)
-        {
+        {           
             string cnnString = System.Configuration.ConfigurationManager.ConnectionStrings["SqlDBDRC"].ConnectionString;
             SqlConnection cnn = new SqlConnection(cnnString);
             SqlCommand cmd = new SqlCommand();
@@ -544,7 +599,7 @@ namespace reporting_web.Controllers
         }
 
         public void GetAppendDataKlaimSettle(string token, string Sdate, string Edate, string FClear)
-        {
+        {            
             VerifiyToken vt = new VerifiyToken();
             if (vt.TrueToken(token))
             {
@@ -580,8 +635,6 @@ namespace reporting_web.Controllers
 
         private static bool IsAvailable(SqlConnection connection)
         {
-
-
             try
             {
                 SqlExtensionsForClaim.QuickOpen(connection, 120);

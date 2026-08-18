@@ -3561,7 +3561,7 @@
     <Content Include="Views\Produksi\DataPersenJumlahUsia.cshtml" />
     <Content Include="Views\Produksi\DataPersenJumlahTSI.cshtml" />
     <Content Include="Views\Produksi\DataPersenJumlahKontribusi.cshtml" />
-    <Content Include="Views\Produksi\DataPersenKontribusiSgm.cshtml" />
+    <Content Include="Views\Produksi\DataPersenKontribusiSgm_.cshtml" />
     <Content Include="Views\Klaim\GetDataSettleKlaim.cshtml" />
     <Content Include="Views\Klaim\DataPersenKlaimCbg.cshtml" />
     <Content Include="Views\Klaim\DataPersenKlaimUYear.cshtml" />
@@ -3591,6 +3591,7 @@
     <Content Include="Views\Klaim\DataKlaimSubro.cshtml" />
     <Content Include="Views\Klaim\ViewMoreSubrogasi.cshtml" />
     <Content Include="Views\Klaim\DataKlaimSumbis.cshtml" />
+    <Content Include="Views\Produksi\DataPersenKontribusiSgm.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
