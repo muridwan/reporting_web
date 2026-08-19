@@ -14,6 +14,7 @@ using System.Web.Mvc;
 using reporting_web.Security;
 using System.Text.RegularExpressions;
 using System.Web.UI.WebControls;
+using System.Web.Security;
 
 namespace reporting_web.Controllers
 {
@@ -688,10 +689,12 @@ namespace reporting_web.Controllers
             }
         }
 
-        public List<DataPersenKontribusiSgm> GetDataPersenKontribusiSgm(string SDate, string EDate, string spName, string COB, string TOC, List<string> ListTOC)
+        public List<DataPersenKontribusiSgm> GetDataPersenKontribusiSgm(string SDate, string EDate, string spName, string COB, string TOC, List<string> ListTOC, string Branch, List<string> ListBranch, string token = "", int roleid = 0)
         {
             string[] listTOC = { "%" };
             DataTable tvp = new DataTable();
+            DataTable dtb = new DataTable();
+
             if (ListTOC != null)
             {
                 var searchCountList = ListTOC.Count(s => { return Regex.IsMatch(s, "^"); });
@@ -708,6 +711,18 @@ namespace reporting_web.Controllers
                 tvp.Rows.Add(listTOC);
             }
 
+            if (ListBranch == null)
+            {
+                dtb.Columns.Add(new DataColumn("n", typeof(String)));
+                dtb.Rows.Add(listTOC);
+            }
+            else
+            { 
+                string[] listBranch = ListBranch[0].Split(new string[] { "," }, StringSplitOptions.None);                
+                dtb.Columns.Add(new DataColumn("n", typeof(String)));
+                foreach (var idbranch in listBranch)
+                    dtb.Rows.Add(idbranch);
+            }
             string constr = ConfigurationManager.ConnectionStrings["SqlDBDRC"].ConnectionString;
             try
             {
@@ -722,10 +737,23 @@ namespace reporting_web.Controllers
                 cmd.Parameters.Add("@EDate", SqlDbType.DateTime).Value = DateTime.Parse(EDate);
                 cmd.Parameters.Add("@COB", SqlDbType.VarChar).Value = COB;
                 cmd.Parameters.Add("@TOC", SqlDbType.VarChar).Value = TOC;
+                cmd.Parameters.Add("@Cbg", SqlDbType.VarChar).Value = Branch;
+                cmd.Parameters.Add("@ListBranch", SqlDbType.Structured);
+                cmd.Parameters["@ListBranch"].Direction = ParameterDirection.Input;
+                cmd.Parameters["@ListBranch"].TypeName = "dbo.varchar_list_tbltype";
+                cmd.Parameters["@ListBranch"].Value = dtb;
                 cmd.Parameters.Add("@ListTOC", SqlDbType.Structured);
                 cmd.Parameters["@ListTOC"].Direction = ParameterDirection.Input;
                 cmd.Parameters["@ListTOC"].TypeName = "dbo.toc_list_tbltype";
                 cmd.Parameters["@ListTOC"].Value = tvp;
+                if (token != "")
+                {
+                    cmd.Parameters.Add("@Token", SqlDbType.VarChar).Value = token;
+                }
+                if (roleid != 0)
+                {
+                    cmd.Parameters.Add("@RoleId", SqlDbType.VarChar).Value = roleid;
+                }
                 cmd.CommandTimeout = 1200000;
                 SqlDataAdapter adpt = new SqlDataAdapter(cmd);
                 adpt.Fill(dt);
@@ -860,7 +888,7 @@ namespace reporting_web.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult GetDataDate(string SDate, string EDate, string TypeReport, List <string> ListTOC, string COB = "%", string TOC = "%", string stoken = "", int iroleid = 0)
+        public JsonResult GetDataDate(string SDate, string EDate, string TypeReport, List <string> ListTOC, string COB = "%", string TOC = "%", string stoken = "", int iroleid = 0, string Branch="%", List <string> ListBranch =null)
         {
             
             if (TypeReport=="DATAPRODUKSI")
@@ -945,7 +973,7 @@ namespace reporting_web.Controllers
             }
             else if (TypeReport == "PERSENKONTRIBUSISGM")
             {
-                var list = GetDataPersenKontribusiSgm(SDate, EDate, "spGetPersenKontribusiSegment", COB, TOC, ListTOC); // list of records to be displayed in datatable
+                var list = GetDataPersenKontribusiSgm(SDate, EDate, "spGetPersenKontribusiSegment", COB, TOC, ListTOC,Branch,ListBranch); // list of records to be displayed in datatable
                 return Json(new
                 {
                     data = list,

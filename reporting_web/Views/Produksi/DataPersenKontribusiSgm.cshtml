@@ -124,6 +124,28 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
+                                                    <div>
+                                                        <label>Branch</label>
+                                                    </div>
+                                                    <div>
+                                                        <select id="BranchSel" multiple="multiple" required=required name="BranchSel">
+
+                                                            @if (ViewBag.BranchCode != null)
+                                                            {
+                                                                foreach (var item in ViewBag.BranchCode)
+                                                                {
+                                                                    if (item.Text != null)
+                                                                    {
+                                                                        <option value="@item.Value">
+                                                                            (@item.Value) @item.Text
+                                                                        </option>
+                                                                    }
+                                                                }
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
                                                     <div class="row">
                                                         @Html.AntiForgeryToken()
                                                         <div class="col-md-4">
@@ -134,7 +156,7 @@
                                             </div>
                                             <div class="col-md-7 text-center">
                                                 <div style="width:350px; height:350px; margin:auto;">
-                                                    <canvas id="pieKlaimSumbis"></canvas>
+                                                    <canvas id="pieKontribusiSegment"></canvas>
                                                 </div>
                                             </div>
 
@@ -225,8 +247,30 @@
                             <script>
                                 var pieChart = null;
                                 $(document).ready(function () {
+                                    $(function () {
+                                        $('#BranchSel').multiselect({
+                                            includeSelectAllOption: true,         /*To enable the Select all Option*/
+                                            selectAllValue: 'multiselect-all',     /*The value used for the select all option can be configured using the selectAllValue*/
+                                            enableFiltering: true,   /*A filter input will be added to dynamically filter all the options*/
+                                            enableCaseInsensitiveFiltering: true,  /*To enable Case Insenstitive Filtering (Upper and Lower Case Letters)*/
+                                            maxHeight: '300',
+                                            buttonWidth: '300',
+                                            nSelectedText: 'Selecciones',
+                                            enableHTML: true,
+                                            templates: {
+                                                filter: '<li class="multiselect-item multiselect-filter"><div class="input-group mb-3"><div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-search"></i></span></div><input class="form-control multiselect-search" type="text" /></div></li>',
+                                                filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default multiselect-clear-filter" type="button"><i class="fa fa-times"></i></button></span>'
+                                            }
+                                        });
+
+                                        $('.multiselect-container .multiselect-filter', $('#BranchSel').parent()).css({
+                                            'position': 'sticky', 'top': '0px', 'z-index': 1,
+                                        })
+                                    });
+
                                     $('#loadingOverlay').appendTo('body');
                                     $('#loadingOverlay').removeClass('show');
+
                                     $(function () {
                                         $('#COBSel').multiselect({
                                             includeSelectAllOption: true,         /*To enable the Select all Option*/
@@ -312,10 +356,28 @@
                                         var $cobid = $('#cobid').val();
                                         var $cobdes = $('#txtcobname').val();
                                         var $tocid = "''";
+                                        var $branchid = "''";
+                                        var $listCab = new Array();
+                                        var $kodecab = "''";
                                         var $listTOC = new Array();
                                         $listTOC = [];
+                                        $listCab = [];
                                         var $tocdes = "''";
+                                        var $branchdes = "''";
                                         var token = $('[name=__RequestVerificationToken]').val();
+
+
+                                        //Branch Selected
+                                        var selectedBranch = $('#BranchSel option:selected');
+                                        selectedBranch.each(function () {
+                                            if ($kodecab == "")
+                                                $kodecab += $(this).text().trim();
+                                            else
+                                                $kodecab += ", " + $(this).text().trim();
+                                            $listCab.push($(this).val());
+                                            $branchid += " , Branch = " + $(this).val() + "";
+                                            $branchdes += ",'" + $(this).text() + "'";
+                                        });
 
                                         //TOC Selected
                                         var selected = $("#COBSel option:selected");    /*Current Selected Value*/
@@ -334,12 +396,19 @@
                                             $tocid = "%";
                                             $tocdes = "ALL";
                                         }
+                                        if ($branchid == "''" || $branchdes == "''") {
+                                            $kodecab = "%";
+                                            $branchdes = "ALL";
+                                        }
                                         var $message = "PERIODE: " + $sdate + " s/d " + $edate + "\n";
                                         $message += "BY COB: " + $cobdes + "\n";
-                                        $message += "BY TOC: " + $tocdes;
+                                        $message += "BY TOC: " + $tocdes + "<br>";
+                                        $message += "BY Branch: " + $branchdes + "<br>";
+
                                         $('#divPeriode').html('<b>' + "Periode: " + $sdate + ' s/d ' + $edate);
                                         $('#message_table_cob').html('<b>' + "BY COB: " + $cobdes);
                                         $('#message_table_toc').html('<b>' + "BY TOC: " + $tocdes);
+                                       
 
                                         $.ajax({
                                             url: '/master/getsysInfo/?stype=PRD',
@@ -375,7 +444,8 @@
                                         var table = CreateReportTable("#tbllossratiocbg", {
                                             "ajax": {
                                                 "url": '/Produksi/GetDataDate',
-                                                "data": {'__RequestVerificationToken': token, 'SDate': $sdate  ,'EDate': $edate ,'TypeReport': "PERSENKONTRIBUSISGM",'COB': $cobid,'TOC': $tocid,'ListTOC': $listTOC},
+                                                "data": {
+                                                    '__RequestVerificationToken': token, 'SDate': $sdate, 'EDate': $edate, 'TypeReport': "PERSENKONTRIBUSISGM", 'COB': $cobid, 'TOC': $tocid, 'ListTOC': $listTOC, 'Branch': $kodecab, 'ListBranch': $listCab},
                                                 "type": "POST", // ajax type must be match to controllers action type
                                                 "datatype": "json",
                                                 "async": true,
@@ -475,70 +545,196 @@
                                                 $(api.column(3).footer()).html(
                                                     number_format(totalPersentase, 2, '.', ',')
                                                 );
+
+                                                // ==========================================
+                                                // Buat / update Pie Chart
+                                                // ==========================================
+                                                BuildPieChart(api);
                                             },                                            
                                         });
 
                                         DTNumbering(table);
                                         
                                     });
-                                    
-                                    //function BuildPieChart(api) {
+                                                                        
 
-                                    //    var totalBPD = api.column(2).data().sum();
-                                    //    var totalBSI = api.column(4).data().sum();
-                                    //    var totalPeg = api.column(6).data().sum();
-                                    //    var totalPNM = api.column(8).data().sum();
-                                    //    var totalTravel = api.column(10).data().sum();
-                                    //    var totalLain = api.column(12).data().sum();
+                                    function BuildPieChart(api) {
 
-                                     //   var ctx = document.getElementById("pieKlaimSumbis");
-                                     //   if (pieChart != null)
-                                     //       pieChart.destroy();
-                                     //   pieChart = new Chart(ctx, {
-                                     //       type: 'pie',
-                                     //       data: {
-                                     //           labels: [
-                                     //               "BPD",
-                                     //               "BSI",
-                                     //               "Pegadaian",
-                                     //               "PNM",
-                                     //               "Travel",
-                                     //               "Lain-lain"
-                                     //           ],
-                                     //           datasets: [{
-                                     //               data: [
-                                     //                   totalBPD,
-                                     //                   totalBSI,
-                                     //                   totalPeg,
-                                     //                   totalPNM,
-                                     //                   totalTravel,
-                                     //                   totalLain
-                                     //               ],
-                                     //               backgroundColor: [
-                                     //                   "#4CAF50",
-                                     //                   "#2196F3",
-                                     //                   "#FFC107",
-                                     //                   "#F44336",
-                                     //                   "#9C27B0",
-                                     //                   "#607D8B"
-                                     //               ]
-                                     //           }]
-                                     //       },
-                                     //       options: {
-                                     //           responsive: true,
-                                     //           maintainAspectRatio: false,
-                                     //           plugins: {
-                                     //               legend: {
-                                     //                   position: 'top'
-                                     //               },
-                                    //                title: {
-                                    //                    display: true,
-                                     //                   text: 'Komposisi Jumlah Klaim'
-                                     //               }
-                                     //           }
-                                     //       }
-                                     //   });
-                                    //}
+                                        // ==========================================
+                                        // AMBIL DATA DARI DATATABLE
+                                        // ==========================================
+
+                                        // Kolom 1 = Segment
+                                        var segments = api.column(1).data().toArray();
+                                        // Kolom 3 = Persentase
+                                        var percentages = api.column(3).data().toArray();
+
+                                        var labels = [];
+                                        var values = [];
+
+                                        // ==========================================
+                                        // PALETTE WARNA
+                                        // ==========================================
+
+                                        var colors = [
+                                            '#4CAF50', // Hijau
+                                            '#2196F3', // Biru
+                                            '#FFC107', // Kuning
+                                            '#F44336', // Merah
+                                            '#9C27B0', // Ungu
+                                            '#00BCD4', // Cyan
+                                            '#FF9800', // Orange
+                                            '#795548', // Coklat
+                                            '#607D8B', // Blue Grey
+                                            '#E91E63', // Pink
+                                            '#3F51B5', // Indigo
+                                            '#009688', // Teal
+                                            '#8BC34A', // Light Green
+                                            '#FF5722', // Deep Orange
+                                            '#673AB7', // Deep Purple
+                                            '#03A9F4', // Light Blue
+                                            '#CDDC39', // Lime
+                                            '#FFC107', // Amber
+                                            '#795548', // Brown
+                                            '#9E9E9E'  // Grey
+                                        ];
+
+                                        // ==========================================
+                                        // PROSES DATA
+                                        // ==========================================
+
+                                        for (var i = 0; i < segments.length; i++) {
+                                            var segment = segments[i];
+                                            var percentage = parseFloat(
+                                                String(percentages[i]).replace(/,/g, '')
+                                            );
+
+                                            // Pastikan data valid
+                                            if (isNaN(percentage)) {
+                                                continue;
+                                            }
+
+                                            // Pie chart hanya menggunakan nilai positif
+                                            if (percentage <= 0) {
+                                                continue;
+                                            }
+
+                                            labels.push(segment);
+                                            values.push(percentage);
+                                        }
+
+                                        // ==========================================
+                                        // CANVAS
+                                        // ==========================================
+
+                                        var canvas = document.getElementById(
+                                            'pieKontribusiSegment'
+                                        );
+
+                                        if (!canvas) {
+                                            console.error(
+                                                'Canvas #pieKontribusiSegment tidak ditemukan.'
+                                            );
+                                            return;
+                                        }
+
+                                        // ==========================================
+                                        // HAPUS CHART SEBELUMNYA
+                                        // ==========================================
+
+                                        if (pieChart !== null) {
+                                            pieChart.destroy();
+                                            pieChart = null;
+                                        }
+
+                                        // ==========================================
+                                        // JIKA DATA KOSONG
+                                        // ==========================================
+
+                                        if (labels.length === 0) {
+                                            var ctxEmpty = canvas.getContext('2d');
+                                            ctxEmpty.clearRect(
+                                                0,
+                                                0,
+                                                canvas.width,
+                                                canvas.height
+                                            );
+                                            return;
+                                        }
+
+                                        // ==========================================
+                                        // BUAT WARNA SESUAI JUMLAH DATA
+                                        // ==========================================
+
+                                        var chartColors = [];
+
+                                        for (var j = 0; j < labels.length; j++) {
+                                            chartColors.push(
+                                                colors[j % colors.length]
+                                            );
+
+                                        }
+
+                                        // ==========================================
+                                        // BUAT PIE CHART
+                                        // ==========================================
+
+                                        var ctx = canvas.getContext('2d');
+                                        pieChart = new Chart(ctx, {
+                                            type: 'pie',
+                                            data: {
+                                                labels: labels,
+                                                datasets: [{
+                                                    label: 'Persentase Kontribusi',
+                                                    data: values,
+                                                    backgroundColor: chartColors,
+                                                    borderColor: '#ffffff',
+                                                    borderWidth: 2
+                                                }]
+                                            },
+                                            options: {
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'top',
+                                                        labels: {
+                                                            padding: 10,
+                                                            boxWidth: 25,
+                                                            font: {
+                                                                size: 12
+                                                            }
+                                                        }
+                                                    },
+                                                    title: {
+                                                        display: true,
+                                                        text: 'Kontribusi Berdasarkan Segment',
+                                                        font: {
+                                                            size: 16,
+                                                            weight: 'bold'
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: function (context) {
+                                                                var label =
+                                                                    context.label || '';
+                                                                var value =
+                                                                    context.parsed || 0;
+                                                                return label + ': ' +
+                                                                    number_format(
+                                                                        value,
+                                                                        2,
+                                                                        '.',
+                                                                        ','
+                                                                    ) + '%';
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
 
                                     function number_format(number, decimals, dec_point, thousands_sep) {
                                         // http://kevin.vanzonneveld.net
