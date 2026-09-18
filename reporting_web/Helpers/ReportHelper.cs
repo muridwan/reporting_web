@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using reporting_web.Models;
 
@@ -114,6 +114,15 @@ namespace reporting_web.Helpers
                 {
                     StoredProcedure="spLaporanKlaimSumbis",
                     ModelType=typeof(DataKlaimSumbis)
+                }
+            },
+
+            {
+                "DATAKLAIMLOSSRATIO",
+                new ReportDefinition
+                {
+                    StoredProcedure = "spLaporanLossRatio",
+                    ModelType = typeof(DataKlaimLossRatio)
                 }
             }
         };

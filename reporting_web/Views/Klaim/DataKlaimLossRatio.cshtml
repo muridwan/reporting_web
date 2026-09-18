@@ -1,0 +1,1310 @@
+﻿@model reporting_web.Models.Datepickermodel
+@{
+    ViewBag.Title = "Data Klaim Loss Ratio";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    #tblklaimlossratio {
+        width: 100% !important;
+    }
+
+    table.dataTable th,
+    table.dataTable td {
+        white-space: nowrap;
+    }
+
+    .dataTables_wrapper {
+        width: 100%;
+    }
+</style>
+
+<div id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading data...</div>
+    </div>
+</div>
+
+<link href="~/FrontEnd/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+<link href="~/Content/jquery.dataTables-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap-1.11.2.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.fontAwesome-1.11.2.css" rel="stylesheet" />
+<link href="~/Content/buttons.dataTables-2.0.1.min.css" rel="stylesheet" />
+<link href="~/Content/rowReorder.dataTables.min.css" rel="stylesheet" />
+<link href="~/Content/responsive.dataTables.min.css" rel="stylesheet" />
+<link href="~/Content/colReorder.dataTables.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+<link href="~/Content/loading.css" rel="stylesheet" />
+
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="~/Scripts/AASReport/AasReport.js"></script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h2>Select Filter</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div>
+                                <label>Start Date</label>
+                            </div>
+                            <div>
+                                <input id="fromdate" type="text" name="FromDate" class="datepicker" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label>End Date</label>
+                            </div>
+                            <div>
+                                <input id="todate" type="text" name="ToDate" class="datepicker" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label>COB</label>
+                            </div>
+                            <div>
+                                <input id="txtcobname" type="text" name="CobName" />
+                                <input id="cobid" type="hidden" name="CobID" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label>TOC</label>
+                            </div>
+                            <div>
+                                <select id="COBSel" multiple="multiple" required=required name="COBSel">
+                                    @if (ViewBag.COBID != null)
+                                    {
+                                        foreach (var item in ViewBag.COBID)
+                                        {
+                                            if (item.Text != null)
+                                            {
+                                                <option value="@item.Value">
+                                                    @item.Value-@item.Text
+                                                </option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <button class="btn btn-info" id="btnKlaimLossRatio"> Load Data</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="divDynamic"></div>
+                <div id="message_table"></div>
+                <div id="message_table_cob"></div>
+                <div id="message_table_toc"></div>
+                <div id="divPeriode"></div>
+                <div id="divGetPeriode"></div>
+
+                <div>
+                    <table id="tblklaimlossratio" class="display nowrap" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Branch</th>
+                                <th>Branch Name</th>
+                                <th>TOC</th>
+                                <th>TOC Name</th>
+                                <th>Segmen</th>
+                                <th>Premi</th>
+                                <th>Potongan</th>
+                                <th>Premi Net</th>
+                                <th>Settle Klaim</th>
+                                <th>Subrogasi</th>
+                                <th>Klaim Net</th>
+                                <th>OS Klaim</th>
+                                <th>LR Settle Klaim (%)</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                <th>Total</th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th id="totalPremi" align="right"></th>
+                                <th id="totalPotongan" align="right"></th>
+                                <th id="totalPremiNet" align="right"></th>
+                                <th id="totalSettleKlaim" align="right"></th>
+                                <th id="totalSubrogasi" align="right"></th>
+                                <th id="totalKlaimNet" align="right"></th>
+                                <th id="totalOSKlaim" align="right"></th>
+                                <th id="totalLRSettleKlaim" align="right"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div id="total"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script src="~/Scripts/jquery.dataTables-1.11.2.min.js"></script>
+    <script src="~/Scripts/dataTables.bootstrap4-1.11.2.min.js"></script>
+    <script src="~/Scripts/sum()-1.11.2.js"></script>
+    <script src="~/Scripts/dataTables.buttons-2.0.1.min.js"></script>
+    <script src="~/Scripts/jszip-3.1.3.min.js"></script>
+    <script src="~/Scripts/pdfmake-0.1.53.min.js"></script>
+    <script src="~/Scripts/vfs_fonts-0.1.53.js"></script>
+    <script src="~/Scripts/buttons.html5-2.0.1.min.js"></script>
+    <script src="~/Scripts/buttons.print-2.0.1.min.js"></script>
+    <script src="~/Scripts/dataTables.rowReorder.min.js"></script>
+    <script src="~/Scripts/dataTables.responsive.min.js"></script>
+    <script src="~/Scripts/dataTables.colReorder.min.js"></script>
+    <script src="~/Content/bootstrap-multiselect.js"></script>
+
+    <script src="~/Scripts/Common/datatable.export.js"></script>
+    <script src="~/Scripts/Common/datatable.footer.js"></script>
+    <script src="~/Scripts/Common/datatable.helper.js"></script>
+    <script src="~/Scripts/Common/datatable.loading.js"></script>
+    <script src="~/Scripts/Common/datatable.number.js"></script>
+    <script src="~/Scripts/Common/loading.helpers.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#loadingOverlay').appendTo('body');
+            $('#loadingOverlay').removeClass('show');
+
+            $(function () {
+                $('#COBSel').multiselect({
+                    includeSelectAllOption: true,
+                    selectAllValue: 'multiselect-all',
+                    enableFiltering: true,
+                    enableCaseInsensitiveFiltering: true,
+                    maxHeight: '300',
+                    buttonWidth: '300',
+                    nSelectedText: 'Selecciones',
+                    enableHTML: true,
+                    templates: {
+                        filter: '<li class="multiselect-item multiselect-filter"><div class="input-group mb-3"><div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-search"></i></span></div><input class="form-control multiselect-search" type="text" /></div></li>',
+                        filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default multiselect-clear-filter" type="button"><i class="fa fa-times"></i></button></span>'
+                    }
+                });
+
+                $('.multiselect-container .multiselect-filter', $('#COBSel').parent()).css({
+                    'position': 'sticky', 'top': '0px', 'z-index': 1,
+                });
+            });
+
+            $("#txtcobname").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '/Home/AutoComplete/',
+                        data: "{'prefix': '" + request.term + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return item;
+                            }));
+                        },
+                        error: function (response) {
+                            alert(response.responseText);
+                        },
+                        failure: function (response) {
+                            alert(response.responseText);
+                        }
+                    });
+                },
+                select: function (e, i) {
+                    $("#cobid").val(i.item.val);
+                    $.ajax({
+                        url: '/master/getTOC/?cobid=' + $("#cobid").val(),
+                        dataType: "json",
+                        type: "GET",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            var select = $('#COBSel');
+                            select.empty();
+                            $('#COBSel').multiselect('rebuild');
+                            for (var idx in data) {
+                                var d = data[idx];
+                                var option = $('<option/>').val(d.val).text(d.label);
+                                select.append(option);
+                            }
+                            select.val('');
+                            $('#COBSel').multiselect('rebuild');
+                        },
+                    });
+                },
+                minLength: 1
+            });
+
+            $(".datepicker").datepicker({
+                dateFormat: "mm-dd-yy",
+                changeMonth: true,
+                changeYear: true,
+                showOn: "both",
+                buttonText: "<i class='fa fa-calendar'></i>"
+            });
+
+            //$("#btnKlaimLossRatio").click(function () {
+            //    var $sdate = $('#fromdate').val();
+            //    var $edate = $('#todate').val();
+            //    var $cobid = $('#cobid').val();
+            //    var $cobdes = $('#txtcobname').val();
+            //    var $tocid = "''";
+            //    var $listTOC = new Array();
+            //    $listTOC = [];
+            //    var $tocdes = "''";
+
+            //    var selected = $("#COBSel option:selected");
+            //    selected.each(function () {
+            //        $tocid += " , TOC = " + $(this).val() + "";
+            //        $listTOC.push($(this).val());
+            //        $tocdes += ",'" + $(this).text() + "'";
+            //    });
+
+            //    if ($cobid == "" || $cobdes == "") {
+            //        $cobid = "%";
+            //        $cobdes = "ALL";
+            //    }
+            //    if ($tocid == "''" || $tocdes == "''") {
+            //        $tocid = "%";
+            //        $tocdes = "ALL";
+            //    }
+
+            //    var $message = "PERIODE: " + $sdate + " s/d " + $edate + "\n";
+            //    $message += "BY COB: " + $cobdes + "\n";
+            //    $message += "BY TOC: " + $tocdes;
+
+            //    $('#divPeriode').html('<b>' + "Periode: " + $sdate + ' s/d ' + $edate);
+            //    $('#message_table_cob').html('<b>' + "BY COB: " + $cobdes);
+            //    $('#message_table_toc').html('<b>' + "BY TOC: " + $tocdes);
+
+            //    $.ajax({
+            //        url: '/master/getsysInfo/?stype=CLM',
+            //        dataType: "json",
+            //        type: "GET",
+            //        contentType: "application/json; charset=utf-8",
+            //        success: function (data) {
+            //            $('#divGetPeriode').html('<b>Data Per:' + data[0].datecomplete);
+            //        },
+            //    });
+
+            //    if ($.fn.DataTable.isDataTable('#tblklaimlossratio')) {
+            //        $('#tblklaimlossratio').DataTable().destroy();
+            //        $('#tblklaimlossratio tbody').empty();
+            //    }
+
+            //    DTLoading("#tblklaimlossratio");
+
+            //    var table = CreateReportTable("#tblklaimlossratio", {
+            //        "ajax": {
+            //            //"url": '/Klaim/GetDataKlaimDate?SDate=' + $sdate + "&EDate=" + $edate + "&TypeReport=DATAKLAIMLOSSRATIO&ListTOC=" + $listTOC + "&COB=" + $cobid + "&TOC=" + $tocid,
+            //            "url": '/Klaim/GetDataKlaimLossRatioServerSide',
+            //            data: function (d) {
+
+            //                d.SDate = $sdate;
+            //                d.EDate = $edate;
+
+            //                d.COB = $cobid;
+            //                d.TOC = $tocid;
+
+            //                d.ListTOC = $listTOC;
+
+            //                return d;
+
+            //            },
+            //            "type": "POST",
+            //            "datatype": "json",
+            //            "async": true,
+            //            error: function (xhr, textStatus, errorThrown) {
+            //                console.log(xhr.responseText);
+            //                alert(errorThrown);
+            //            }
+            //        },
+            //        "columns": [
+            //            {
+            //                "data": null,
+            //                "orderable": false,
+            //                "searchable": false,
+            //                "className": "text-center",
+            //                render: function (data, type, row, meta) {
+            //                    return meta.settings._iDisplayStart + meta.row + 1;
+            //                }
+            //            },
+            //            { "data": "Branch", "className": "text-center" },
+            //            { "data": "Branch_Name" },
+            //            { "data": "TOC", "className": "text-center" },
+            //            { "data": "TOC_NAME" },
+            //            { "data": "Segmen" },
+            //            { "data": "Premi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            //            { "data": "Potongan", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            //            { "data": "PremiNet", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            //            { "data": "SettleKlaim", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            //            { "data": "Subrogasi", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            //            { "data": "KlaimNet", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            //            { "data": "OSKlaim", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" },
+            //            { "data": "LR_SettleKlaim", render: $.fn.dataTable.render.number(',', '.', 2, ''), className: "text-right" }
+            //        ],
+            //        "dom": "<'row'<'col-sm-6'B><'col-sm-6'f>>" +
+            //               "<'row'<'col-sm-12'tr>>" +
+            //               "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+            //        buttons: DTButtons($message),
+            //        processing: true,
+            //        serverSide: true,
+            //        scrollX: true,
+            //        scrollCollapse: true,
+            //        autoWidth: false,
+            //        responsive: false,
+            //        fixedHeader: false,
+            //        paging: true,
+            //        lengthMenu: [
+            //            [10, 25, 50, 100],
+            //            [10, 25, 50, 100]
+            //        ],
+            //        columnDefs: [
+            //            {
+            //                searchable: false,
+            //                orderable: false,
+            //                targets: 0
+            //            }
+            //        ],
+            //        colReorder: true,
+            //        order: [[1, 'asc']],
+            //        footerCallback: function () {
+            //            var api = this.api();
+            //            // Sum numeric columns 6 through 12 (Premi, Potongan, PremiNet, SettleKlaim, Subrogasi, KlaimNet, OSKlaim)
+            //            DTFooter(
+            //                api,
+            //                [6, 7, 8, 9, 10, 11, 12],
+            //                [6, 7, 8, 9, 10, 11, 12]
+            //            );
+
+            //            // Calculate Weighted LR for footer: (Total SettleKlaim / Total Premi) * 100
+            //            var totalPremi = api.column(6).data().sum();
+            //            var totalSettleKlaim = api.column(9).data().sum();
+            //            var totalLR = totalPremi !== 0 ? (totalSettleKlaim / totalPremi) * 100 : 0;
+            //            $(api.column(13).footer()).html(
+            //                $.fn.dataTable.render.number(',', '.', 2).display(totalLR)
+            //            );
+            //        }
+            //    });
+
+            //    //DTNumbering(table);
+            //});
+            $("#btnKlaimLossRatio").click(function () {
+
+                // =========================================================
+                // 1. AMBIL FILTER
+                // =========================================================
+
+                var $sdate = $('#fromdate').val();
+                var $edate = $('#todate').val();
+
+                var $cobid = $('#cobid').val();
+                var $cobdes = $('#txtcobname').val();
+
+                var $tocid = "''";
+                var $listTOC = [];
+                var $tocdes = "''";
+
+
+                // =========================================================
+                // 2. AMBIL TOC YANG DIPILIH
+                // =========================================================
+
+                var selected =
+                    $("#COBSel option:selected");
+
+                selected.each(function () {
+
+                    $tocid +=
+                        " , TOC = " + $(this).val();
+
+                    $listTOC.push(
+                        $(this).val()
+                    );
+
+                    $tocdes +=
+                        ",'" + $(this).text() + "'";
+                });
+
+
+                // =========================================================
+                // 3. DEFAULT COB
+                // =========================================================
+
+                if ($cobid == "" || $cobdes == "") {
+
+                    $cobid = "%";
+                    $cobdes = "ALL";
+                }
+
+
+                // =========================================================
+                // 4. DEFAULT TOC
+                // =========================================================
+
+                if ($tocid == "''" || $tocdes == "''") {
+
+                    $tocid = "%";
+                    $tocdes = "ALL";
+                }
+
+
+                // =========================================================
+                // 5. VALIDASI TANGGAL
+                // =========================================================
+
+                if ($sdate == "" || $edate == "") {
+
+                    alert("Start Date dan End Date harus diisi.");
+
+                    return;
+                }
+
+
+                // =========================================================
+                // 6. MESSAGE REPORT
+                // =========================================================
+
+                var $message =
+                    "PERIODE: " +
+                    $sdate +
+                    " s/d " +
+                    $edate +
+                    "\n";
+
+                $message +=
+                    "BY COB: " +
+                    $cobdes +
+                    "\n";
+
+                $message +=
+                    "BY TOC: " +
+                    $tocdes;
+
+
+                // =========================================================
+                // 7. TAMPILKAN FILTER DI HALAMAN
+                // =========================================================
+
+                $('#divPeriode').html(
+                    '<b>Periode: ' +
+                    $sdate +
+                    ' s/d ' +
+                    $edate +
+                    '</b>'
+                );
+
+                $('#message_table_cob').html(
+                    '<b>BY COB: ' +
+                    $cobdes +
+                    '</b>'
+                );
+
+                $('#message_table_toc').html(
+                    '<b>BY TOC: ' +
+                    $tocdes +
+                    '</b>'
+                );
+
+
+                // =========================================================
+                // 8. AMBIL INFORMASI PERIODE DATA KLAIM
+                // =========================================================
+
+                $.ajax({
+
+                    url:
+                        '/master/getsysInfo/?stype=CLM',
+
+                    dataType: "json",
+
+                    type: "GET",
+
+                    contentType:
+                        "application/json; charset=utf-8",
+
+                    success: function (data) {
+
+                        if (data &&
+                            data.length > 0) {
+
+                            $('#divGetPeriode').html(
+                                '<b>Data Per: ' +
+                                data[0].datecomplete +
+                                '</b>'
+                            );
+                        }
+                    },
+
+                    error: function (xhr) {
+
+                        console.log(
+                            "getsysInfo error:",
+                            xhr.responseText
+                        );
+                    }
+                });
+
+
+                // =========================================================
+                // 9. HAPUS DATATABLE LAMA
+                // =========================================================
+
+                if (
+                    $.fn.DataTable.isDataTable(
+                        '#tblklaimlossratio'
+                    )
+                ) {
+
+                    $('#tblklaimlossratio')
+                        .DataTable()
+                        .destroy();
+
+                    $('#tblklaimlossratio tbody')
+                        .empty();
+                }
+
+
+                // =========================================================
+                // 10. TAMPILKAN LOADING
+                // =========================================================
+
+                DTLoading(
+                    "#tblklaimlossratio"
+                );
+
+
+                $('#loadingOverlay')
+                    .addClass('show');
+
+
+                // =========================================================
+                // 11. DISABLE BUTTON
+                // =========================================================
+
+                var $btn =
+                    $('#btnKlaimLossRatio');
+
+                $btn.prop(
+                    'disabled',
+                    true
+                );
+
+                $btn.text(
+                    'Generating Report...'
+                );
+
+
+                // =========================================================
+                // 12. GENERATE REPORT
+                //
+                // PENTING:
+                // AJAX INI BUKAN DATATABLES
+                //
+                // Tujuannya hanya:
+                //
+                // Filter
+                //    ↓
+                // spLaporanLossRatio
+                //    ↓
+                // Cache
+                //    ↓
+                // ReportKey
+                // =========================================================
+
+                $.ajax({
+
+                    url:
+                        '/Klaim/GenerateLossRatioReport',
+
+                    type:
+                        'POST',
+
+                    dataType:
+                        'json',
+
+                    data: {
+
+                        SDate:
+                            $sdate,
+
+                        EDate:
+                            $edate,
+
+                        COB:
+                            $cobid,
+
+                        TOC:
+                            $tocid,
+
+                        ListTOC:
+                            $listTOC
+
+                    },
+
+                    success: function (response) {
+
+
+                        // =================================================
+                        // 13. CEK GENERATE
+                        // =================================================
+
+                        if (!response ||
+                            response.success !== true) {
+
+                            $('#loadingOverlay')
+                                .removeClass('show');
+
+                            $btn.prop(
+                                'disabled',
+                                false
+                            );
+
+                            $btn.text(
+                                'Load Data'
+                            );
+
+                            alert(
+                                response &&
+                                    response.message
+                                    ? response.message
+                                    : 'Gagal generate report Loss Ratio.'
+                            );
+
+                            return;
+                        }
+
+
+                        // =================================================
+                        // 14. AMBIL REPORT KEY
+                        // =================================================
+
+                        var reportKey =
+                            response.reportKey;
+
+
+                        console.log(
+                            "Loss Ratio ReportKey:",
+                            reportKey
+                        );
+
+
+                        // =================================================
+                        // 15. VALIDASI REPORT KEY
+                        // =================================================
+
+                        if (!reportKey) {
+
+                            $('#loadingOverlay')
+                                .removeClass('show');
+
+                            $btn.prop(
+                                'disabled',
+                                false
+                            );
+
+                            $btn.text(
+                                'Load Data'
+                            );
+
+                            alert(
+                                'ReportKey tidak ditemukan.'
+                            );
+
+                            return;
+                        }
+
+
+                        // =================================================
+                        // 16. BUAT DATATABLE
+                        //
+                        // SEKARANG BARU DATATABLES DIBUAT
+                        // =================================================
+
+                        var table =
+                            CreateReportTable(
+                                "#tblklaimlossratio",
+                                {
+
+                                    // =====================================
+                                    // AJAX DATATABLES
+                                    // =====================================
+
+                                    "ajax": {
+
+                                        "url":
+                                            "/Klaim/GetDataKlaimLossRatioServerSide",
+
+                                        "type":
+                                            "POST",
+
+                                        "datatype":
+                                            "json",
+
+                                        "async":
+                                            true,
+
+
+                                        // =================================
+                                        // DATA REQUEST
+                                        // =================================
+
+                                        "data": function (d) {
+
+                                            // ---------------------------------
+                                            // DataTables OTOMATIS mengirim:
+                                            //
+                                            // draw
+                                            // start
+                                            // length
+                                            // search[value]
+                                            // order[0][column]
+                                            // order[0][dir]
+                                            // ---------------------------------
+
+                                            // ---------------------------------
+                                            // Kita tambahkan ReportKey
+                                            // ---------------------------------
+
+                                            d.ReportKey =
+                                                reportKey;
+
+
+                                            return d;
+                                        },
+
+
+                                        // =================================
+                                        // ERROR
+                                        // =================================
+
+                                        "error": function (
+                                            xhr,
+                                            textStatus,
+                                            errorThrown
+                                        ) {
+
+                                            console.log(
+                                                "DataTables Error:",
+                                                xhr.responseText
+                                            );
+
+                                            $('#loadingOverlay')
+                                                .removeClass('show');
+
+                                            alert(
+                                                errorThrown ||
+                                                'Gagal mengambil data Loss Ratio.'
+                                            );
+                                        }
+                                    },
+
+
+                                    // =====================================
+                                    // COLUMNS
+                                    // =====================================
+
+                                    "columns": [
+
+                                        // ---------------------------------
+                                        // NO
+                                        // ---------------------------------
+
+                                        {
+                                            "data": null,
+
+                                            "orderable":
+                                                false,
+
+                                            "searchable":
+                                                false,
+
+                                            "className":
+                                                "text-center",
+
+                                            render:
+                                                function (
+                                                    data,
+                                                    type,
+                                                    row,
+                                                    meta
+                                                ) {
+
+                                                    return (
+                                                        meta.settings
+                                                            ._iDisplayStart
+                                                        +
+                                                        meta.row
+                                                        +
+                                                        1
+                                                    );
+                                                }
+                                        },
+
+
+                                        // ---------------------------------
+                                        // BRANCH
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "Branch",
+
+                                            "className":
+                                                "text-center"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // BRANCH NAME
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "Branch_Name"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // TOC
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "TOC",
+
+                                            "className":
+                                                "text-center"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // TOC NAME
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "TOC_NAME"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // SEGMEN
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "Segmen"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // PREMI
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "Premi",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // POTONGAN
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "Potongan",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // PREMI NET
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "PremiNet",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // SETTLE KLAIM
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "SettleKlaim",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // SUBROGASI
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "Subrogasi",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // KLAIM NET
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "KlaimNet",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // OS KLAIM
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "OSKlaim",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        },
+
+
+                                        // ---------------------------------
+                                        // LOSS RATIO
+                                        // ---------------------------------
+
+                                        {
+                                            "data":
+                                                "LR_SettleKlaim",
+
+                                            "render":
+                                                $.fn.dataTable.render.number(
+                                                    ',',
+                                                    '.',
+                                                    2,
+                                                    ''
+                                                ),
+
+                                            "className":
+                                                "text-right"
+                                        }
+                                    ],
+
+
+                                    // =====================================
+                                    // DATATABLE CONFIG
+                                    // =====================================
+
+                                    "dom":
+                                        "<'row'<'col-sm-6'B><'col-sm-6'f>>" +
+                                        "<'row'<'col-sm-12'tr>>" +
+                                        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+
+
+                                    buttons:
+                                        DTButtons(
+                                            $message
+                                        ),
+
+
+                                    processing:
+                                        true,
+
+
+                                    serverSide:
+                                        true,
+
+
+                                    paging:
+                                        true,
+
+
+                                    pageLength:
+                                        25,
+
+
+                                    lengthMenu: [
+                                        [10, 25, 50, 100],
+                                        [10, 25, 50, 100]
+                                    ],
+
+
+                                    scrollX:
+                                        true,
+
+
+                                    scrollCollapse:
+                                        true,
+
+
+                                    autoWidth:
+                                        false,
+
+
+                                    responsive:
+                                        false,
+
+
+                                    fixedHeader:
+                                        false,
+
+
+                                    columnDefs: [
+
+                                        {
+                                            searchable:
+                                                false,
+
+                                            orderable:
+                                                false,
+
+                                            targets:
+                                                0
+                                        }
+                                    ],
+
+
+                                    colReorder:
+                                        true,
+
+
+                                    order: [
+                                        [1, 'asc']
+                                    ],
+
+
+                                    // =====================================
+                                    // FOOTER
+                                    // =====================================
+
+                                    footerCallback:
+                                        function () {
+
+                                            var api =
+                                                this.api();
+
+
+                                            DTFooter(
+                                                api,
+
+                                                [
+                                                    6,
+                                                    7,
+                                                    8,
+                                                    9,
+                                                    10,
+                                                    11,
+                                                    12
+                                                ],
+
+                                                [
+                                                    6,
+                                                    7,
+                                                    8,
+                                                    9,
+                                                    10,
+                                                    11,
+                                                    12
+                                                ]
+                                            );
+
+
+                                            var totalPremi =
+                                                api
+                                                    .column(6)
+                                                    .data()
+                                                    .sum();
+
+
+                                            var totalSettleKlaim =
+                                                api
+                                                    .column(9)
+                                                    .data()
+                                                    .sum();
+
+
+                                            var totalLR =
+                                                totalPremi !== 0
+                                                    ? (
+                                                        totalSettleKlaim /
+                                                        totalPremi
+                                                    ) * 100
+                                                    : 0;
+
+
+                                            $(api
+                                                .column(13)
+                                                .footer()
+                                            ).html(
+
+                                                $.fn.dataTable
+                                                    .render
+                                                    .number(
+                                                        ',',
+                                                        '.',
+                                                        2
+                                                    )
+                                                    .display(
+                                                        totalLR
+                                                    )
+                                            );
+                                        }
+                                }
+                            );
+
+
+                        // =================================================
+                        // 17. REPORT SELESAI
+                        // =================================================
+
+                        $('#loadingOverlay')
+                            .removeClass('show');
+
+
+                        $btn.prop(
+                            'disabled',
+                            false
+                        );
+
+                        $btn.text(
+                            'Load Data'
+                        );
+                    },
+
+
+                    // =====================================================
+                    // 18. ERROR GENERATE
+                    // =====================================================
+
+                    error: function (
+                        xhr,
+                        textStatus,
+                        errorThrown
+                    ) {
+
+                        console.log(
+                            "Generate Error:",
+                            xhr.responseText
+                        );
+
+
+                        $('#loadingOverlay')
+                            .removeClass('show');
+
+
+                        $btn.prop(
+                            'disabled',
+                            false
+                        );
+
+
+                        $btn.text(
+                            'Load Data'
+                        );
+
+
+                        alert(
+                            errorThrown ||
+                            'Terjadi kesalahan saat generate report.'
+                        );
+                    }
+                });
+
+            });
+        });
+    </script>
+}

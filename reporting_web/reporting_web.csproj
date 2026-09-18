@@ -189,6 +189,7 @@
     <Compile Include="Models\DataCOB.cs" />
     <Compile Include="Models\DataGroupBranch.cs" />
     <Compile Include="Models\DataGrowthKontribusi.cs" />
+    <Compile Include="Models\DataKlaimLossRatio.cs" />
     <Compile Include="Models\DataKlaimSumbis.cs" />
     <Compile Include="Models\DataLabaRugiGab.cs" />
     <Compile Include="Models\DataListJurnalTrans.cs" />
@@ -209,6 +210,7 @@
     <Compile Include="Models\DataSurplusReport.cs" />
     <Compile Include="Models\DatasysInfo.cs" />
     <Compile Include="Models\DataSysLog.cs" />
+    <Compile Include="Models\DataTablePagedResult.cs" />
     <Compile Include="Models\DataTOC.cs" />
     <Compile Include="Models\DataUWResult.cs" />
     <Compile Include="Models\Datepickermodel.cs" />
@@ -3592,6 +3594,7 @@
     <Content Include="Views\Klaim\ViewMoreSubrogasi.cshtml" />
     <Content Include="Views\Klaim\DataKlaimSumbis.cshtml" />
     <Content Include="Views\Produksi\DataPersenKontribusiSgm.cshtml" />
+    <Content Include="Views\Klaim\DataKlaimLossRatio.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

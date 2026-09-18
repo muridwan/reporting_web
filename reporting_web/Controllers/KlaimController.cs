@@ -1,4 +1,4 @@
-﻿using reporting_web.Models;
+using reporting_web.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -405,6 +405,41 @@ namespace reporting_web.Controllers
             return View();
         }
         public ActionResult DataKlaimSumbis()
+        {
+            if (!IsLogin())
+                return RedirectToAction("Login", "Login");
+
+            using (DataTOC db = new DataTOC())
+            {
+                var result = (from TOCList in db.TOCs select TOCList).ToList();
+                if (result != null)
+                {
+                    ViewBag.COBID = result.Select(x => new SelectListItem { Text = x.DESCRIPTION, Value = x.TOC1.ToString() });
+                }
+            }
+            VerifiyToken menu = new VerifiyToken();
+            long idrole = Int64.Parse(Session["RoleId"].ToString());
+            if (idrole == 1)
+            {
+                ViewBag.MenuParent = menu.getMenuParent();
+                ViewBag.SubMenu1 = menu.getSubMenu1();
+                ViewBag.SubMenu2 = menu.getSubMenu2();
+            }
+            else
+            {
+                ViewBag.MenuParent = menu.getMenuParent(idrole);
+                ViewBag.SubMenu1 = menu.getSubMenu1(idrole);
+                ViewBag.SubMenu2 = menu.getSubMenu2(idrole);
+            }
+            string CurrentURL = Request.Url.AbsoluteUri;
+            string filename = System.IO.Path.GetFileNameWithoutExtension(CurrentURL);
+
+            ViewBag.AksesUser = menu.getAccessMenu(filename, idrole);
+
+            return View();
+        }
+
+        public ActionResult DataKlaimLossRatio()
         {
             if (!IsLogin())
                 return RedirectToAction("Login", "Login");
@@ -910,6 +945,764 @@ namespace reporting_web.Controllers
 
         }
 
+        [HttpPost]
+        public JsonResult GenerateLossRatioReport()
+        {
+            try
+            {
+                // =====================================================
+                // PARAMETER REPORT
+                // =====================================================
+
+                string SDate =
+                    Request.Form["SDate"] ?? "";
+
+                string EDate =
+                    Request.Form["EDate"] ?? "";
+
+                string COB =
+                    Request.Form["COB"] ?? "%";
+
+                string TOC =
+                    Request.Form["TOC"] ?? "%";
+
+
+                // =====================================================
+                // VALIDASI TANGGAL
+                // =====================================================
+
+                DateTime startDate;
+                DateTime endDate;
+
+                if (!DateTime.TryParse(SDate, out startDate))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Start Date tidak valid."
+                    });
+                }
+
+                if (!DateTime.TryParse(EDate, out endDate))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "End Date tidak valid."
+                    });
+                }
+
+
+                // =====================================================
+                // LIST TOC
+                // =====================================================
+
+                string[] listTOCValues =
+                    Request.Form.GetValues("ListTOC");
+
+                List<string> ListTOC =
+                    new List<string>();
+
+                if (listTOCValues != null)
+                {
+                    foreach (string value in listTOCValues)
+                    {
+                        if (string.IsNullOrWhiteSpace(value))
+                            continue;
+
+                        string[] splitValues =
+                            value.Split(
+                                new[] { ',' },
+                                StringSplitOptions.RemoveEmptyEntries
+                            );
+
+                        foreach (string toc in splitValues)
+                        {
+                            string cleanTOC =
+                                toc.Trim();
+
+                            if (!string.IsNullOrEmpty(cleanTOC))
+                            {
+                                ListTOC.Add(cleanTOC);
+                            }
+                        }
+                    }
+                }
+
+
+                // =====================================================
+                // TOKEN & ROLE
+                // =====================================================
+
+                string stoken =
+                    Request.Form["stoken"] ?? "";
+
+                int iroleid = 0;
+
+                int.TryParse(
+                    Request.Form["iroleid"],
+                    out iroleid
+                );
+
+
+                // =====================================================
+                // EXECUTE GENERATE
+                // =====================================================
+
+                Guid reportKey;
+
+                int recordsTotal;
+
+                bool success =
+                    GenerateLossRatioReport(
+                        startDate,
+                        endDate,
+                        COB,
+                        TOC,
+                        ListTOC,
+                        stoken,
+                        iroleid,
+                        out reportKey,
+                        out recordsTotal
+                    );
+
+
+                if (!success)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Gagal generate report Loss Ratio."
+                    });
+                }
+
+
+                // =====================================================
+                // RETURN REPORT KEY
+                // =====================================================
+
+                return Json(new
+                {
+                    success = true,
+                    reportKey = reportKey.ToString(),
+                    recordsTotal = recordsTotal
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        private bool GenerateLossRatioReport(
+    DateTime SDate,
+    DateTime EDate,
+    string COB,
+    string TOC,
+    List<string> ListTOC,
+    string token,
+    int roleid,
+    out Guid reportKey,
+    out int recordsTotal)
+        {
+            reportKey = Guid.Empty;
+            recordsTotal = 0;
+
+            try
+            {
+                // =====================================================
+                // TVP LIST TOC
+                // =====================================================
+
+                DataTable tvp = new DataTable();
+
+                tvp.Columns.Add(
+                    new DataColumn(
+                        "TOC",
+                        typeof(string)
+                    )
+                );
+
+                if (ListTOC != null)
+                {
+                    foreach (string toc in ListTOC)
+                    {
+                        if (!string.IsNullOrWhiteSpace(toc))
+                        {
+                            tvp.Rows.Add(
+                                toc.Trim()
+                            );
+                        }
+                    }
+                }
+
+
+                // =====================================================
+                // CONNECTION STRING
+                // =====================================================
+
+                string constr =
+                    ConfigurationManager
+                        .ConnectionStrings["SqlDBDRC"]
+                        .ConnectionString;
+
+
+                // =====================================================
+                // CONNECTION
+                // =====================================================
+
+                using (SqlConnection con =
+                    new SqlConnection(constr))
+                {
+                    // BUKA CONNECTION
+                    con.Open();
+
+
+                    // =================================================
+                    // COMMAND GENERATE
+                    // =================================================
+
+                    using (SqlCommand cmd =
+                        new SqlCommand(
+                            "spLaporanLossRatio",
+                            con))
+                    {
+                        cmd.CommandType =
+                            CommandType.StoredProcedure;
+
+                        cmd.CommandTimeout =
+                            1200;
+
+
+                        // =============================================
+                        // SDATE
+                        // =============================================
+
+                        cmd.Parameters.Add(
+                            "@SDate",
+                            SqlDbType.Date
+                        ).Value =
+                            SDate.Date;
+
+
+                        // =============================================
+                        // EDATE
+                        // =============================================
+
+                        cmd.Parameters.Add(
+                            "@EDate",
+                            SqlDbType.Date
+                        ).Value =
+                            EDate.Date;
+
+
+                        // =============================================
+                        // COB
+                        // =============================================
+
+                        cmd.Parameters.Add(
+                            "@COB",
+                            SqlDbType.VarChar,
+                            2
+                        ).Value =
+                            string.IsNullOrWhiteSpace(COB)
+                                ? "%"
+                                : COB;
+
+
+                        // =============================================
+                        // TOC
+                        // =============================================
+
+                        cmd.Parameters.Add(
+                            "@TOC",
+                            SqlDbType.VarChar
+                        ).Value =
+                            string.IsNullOrWhiteSpace(TOC)
+                                ? "%"
+                                : TOC;
+
+
+                        // =============================================
+                        // LIST TOC
+                        // =============================================
+
+                        SqlParameter pListTOC =
+                            cmd.Parameters.Add(
+                                "@ListTOC",
+                                SqlDbType.Structured
+                            );
+
+                        pListTOC.TypeName =
+                            "dbo.toc_list_tbltype";
+
+                        pListTOC.Value =
+                            tvp;
+
+
+                        // =============================================
+                        // TOKEN
+                        // =============================================
+
+                        cmd.Parameters.Add(
+                            "@Token",
+                            SqlDbType.VarChar,
+                            100
+                        ).Value =
+                            token ?? "";
+
+
+                        // =============================================
+                        // ROLE
+                        // =============================================
+
+                        cmd.Parameters.Add(
+                            "@RoleId",
+                            SqlDbType.BigInt
+                        ).Value =
+                            roleid;
+
+
+                        // =============================================
+                        // REPORT KEY OUTPUT
+                        // =============================================
+
+                        SqlParameter pReportKey =
+                            cmd.Parameters.Add(
+                                "@ReportKey",
+                                SqlDbType.UniqueIdentifier
+                            );
+
+                        pReportKey.Direction =
+                            ParameterDirection.Output;
+
+
+                        // =============================================
+                        // EXECUTE SP
+                        // =============================================
+
+                        cmd.ExecuteNonQuery();
+
+
+                        // =============================================
+                        // BACA REPORT KEY
+                        // =============================================
+
+                        if (pReportKey.Value != null &&
+                            pReportKey.Value != DBNull.Value)
+                        {
+                            reportKey =
+                                (Guid)pReportKey.Value;
+                        }
+                    }
+
+
+                    // =================================================
+                    // VALIDASI REPORT KEY
+                    // =================================================
+
+                    if (reportKey == Guid.Empty)
+                    {
+                        return false;
+                    }
+
+
+                    // =================================================
+                    // AMBIL TOTAL DATA DARI CACHE
+                    // =================================================
+
+                    using (SqlCommand cmdCount =
+                        new SqlCommand(
+                            @"
+                    SELECT COUNT(*)
+                    FROM dbo.LossRatioReportCache
+                    WHERE ID = @ReportKey
+                    ",
+                            con))
+                    {
+                        cmdCount.CommandType =
+                            CommandType.Text;
+
+                        cmdCount.Parameters.Add(
+                            "@ReportKey",
+                            SqlDbType.UniqueIdentifier
+                        ).Value =
+                            reportKey;
+
+
+                        recordsTotal =
+                            Convert.ToInt32(
+                                cmdCount.ExecuteScalar()
+                            );
+                    }
+                }
+
+
+                return true;
+            }
+            catch (SqlException ex)
+            {
+                DisplaySqlErrors(ex);
+
+                return false;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+        private List<DataKlaimLossRatio> GetDataKlaimLossRatioPaged(
+            Guid reportKey,
+            int start,
+            int length,
+            string search,
+            int orderColumn,
+            string orderDir,
+            out int recordsTotal,
+            out int recordsFiltered)
+        {
+            recordsTotal = 0;
+            recordsFiltered = 0;
+
+            DataTable dt =
+                new DataTable();
+
+            try
+            {
+                // =====================================================
+                // CONNECTION
+                // =====================================================
+
+                string constr =
+                    ConfigurationManager
+                        .ConnectionStrings["SqlDBDRC"]
+                        .ConnectionString;
+
+
+                using (SqlConnection con =
+                    new SqlConnection(constr))
+
+                using (SqlCommand cmd =
+                    new SqlCommand(
+                        "spLaporanLossRatioPaged",
+                        con))
+                {
+                    cmd.CommandType =
+                        CommandType.StoredProcedure;
+
+                    cmd.CommandTimeout =
+                        120;
+
+
+                    // =================================================
+                    // REPORT KEY
+                    // =================================================
+
+                    cmd.Parameters.Add(
+                        "@ReportKey",
+                        SqlDbType.UniqueIdentifier
+                    ).Value =
+                        reportKey;
+
+
+                    // =================================================
+                    // DATATABLES START
+                    // =================================================
+
+                    cmd.Parameters.Add(
+                        "@Start",
+                        SqlDbType.Int
+                    ).Value =
+                        start;
+
+
+                    // =================================================
+                    // DATATABLES LENGTH
+                    // =================================================
+
+                    cmd.Parameters.Add(
+                        "@Length",
+                        SqlDbType.Int
+                    ).Value =
+                        length;
+
+
+                    // =================================================
+                    // SEARCH
+                    // =================================================
+
+                    cmd.Parameters.Add(
+                        "@Search",
+                        SqlDbType.VarChar,
+                        200
+                    ).Value =
+                        search ?? "";
+
+
+                    // =================================================
+                    // ORDER COLUMN
+                    // =================================================
+
+                    cmd.Parameters.Add(
+                        "@OrderColumn",
+                        SqlDbType.Int
+                    ).Value =
+                        orderColumn;
+
+
+                    // =================================================
+                    // ORDER DIRECTION
+                    // =================================================
+
+                    cmd.Parameters.Add(
+                        "@OrderDir",
+                        SqlDbType.VarChar,
+                        4
+                    ).Value =
+                        orderDir == "desc"
+                            ? "desc"
+                            : "asc";
+
+
+                    // =================================================
+                    // RECORD TOTAL
+                    // =================================================
+
+                    SqlParameter pRecordsTotal =
+                        cmd.Parameters.Add(
+                            "@RecordsTotal",
+                            SqlDbType.Int
+                        );
+
+                    pRecordsTotal.Direction =
+                        ParameterDirection.Output;
+
+
+                    // =================================================
+                    // RECORD FILTERED
+                    // =================================================
+
+                    SqlParameter pRecordsFiltered =
+                        cmd.Parameters.Add(
+                            "@RecordsFiltered",
+                            SqlDbType.Int
+                        );
+
+                    pRecordsFiltered.Direction =
+                        ParameterDirection.Output;
+
+
+                    // =================================================
+                    // EXECUTE
+                    // =================================================
+
+                    using (SqlDataAdapter adapter =
+                        new SqlDataAdapter(cmd))
+                    {
+                        adapter.Fill(dt);
+                    }
+
+
+                    // =================================================
+                    // READ RECORD TOTAL
+                    // =================================================
+
+                    if (pRecordsTotal.Value != null &&
+                        pRecordsTotal.Value != DBNull.Value)
+                    {
+                        recordsTotal =
+                            Convert.ToInt32(
+                                pRecordsTotal.Value
+                            );
+                    }
+
+
+                    // =================================================
+                    // READ RECORD FILTERED
+                    // =================================================
+
+                    if (pRecordsFiltered.Value != null &&
+                        pRecordsFiltered.Value != DBNull.Value)
+                    {
+                        recordsFiltered =
+                            Convert.ToInt32(
+                                pRecordsFiltered.Value
+                            );
+                    }
+                }
+
+
+                // =====================================================
+                // DATATABLE -> MODEL
+                // =====================================================
+
+                return ConvertDataTableToList<DataKlaimLossRatio>(dt);
+            }
+            catch (SqlException ex)
+            {
+                DisplaySqlErrors(ex);
+
+                return new List<DataKlaimLossRatio>();
+            }
+        }
+
+        [HttpPost]
+        public JsonResult GetDataKlaimLossRatioServerSide()
+        {
+            // =====================================================
+            // DATATABLES
+            // =====================================================
+
+            int draw = 0;
+
+            int start = 0;
+
+            int length = 25;
+
+            try
+            {
+               
+                int.TryParse(
+                    Request.Form["draw"],
+                    out draw
+                );
+
+                int.TryParse(
+                    Request.Form["start"],
+                    out start
+                );
+
+                int.TryParse(
+                    Request.Form["length"],
+                    out length
+                );
+
+
+                // =====================================================
+                // SEARCH
+                // =====================================================
+
+                string search =
+                    Request.Form["search[value]"] ?? "";
+
+
+                // =====================================================
+                // ORDER
+                // =====================================================
+
+                int orderColumn = 1;
+
+                int.TryParse(
+                    Request.Form["order[0][column]"],
+                    out orderColumn
+                );
+
+
+                string orderDir =
+                    Request.Form["order[0][dir]"] ?? "asc";
+
+
+                // =====================================================
+                // REPORT KEY
+                // =====================================================
+
+                string reportKeyString =
+                    Request.Form["ReportKey"] ?? "";
+
+
+                Guid reportKey;
+
+
+                if (!Guid.TryParse(
+                    reportKeyString,
+                    out reportKey))
+                {
+                    return Json(
+                        new
+                        {
+                            draw = draw,
+                            recordsTotal = 0,
+                            recordsFiltered = 0,
+                            data =
+                                new List<DataKlaimLossRatio>(),
+                            error =
+                                "ReportKey tidak valid atau report belum digenerate."
+                        },
+                        JsonRequestBehavior.AllowGet
+                    );
+                }
+
+
+                // =====================================================
+                // GET PAGED DATA
+                // =====================================================
+
+                int recordsTotal;
+
+                int recordsFiltered;
+
+
+                List<DataKlaimLossRatio> data =
+                    GetDataKlaimLossRatioPaged(
+                        reportKey,
+                        start,
+                        length,
+                        search,
+                        orderColumn,
+                        orderDir,
+                        out recordsTotal,
+                        out recordsFiltered
+                    );
+
+
+                // =====================================================
+                // RESPONSE DATATABLES
+                // =====================================================
+
+                return Json(
+                    new
+                    {
+                        draw = draw,
+
+                        recordsTotal =
+                            recordsTotal,
+
+                        recordsFiltered =
+                            recordsFiltered,
+
+                        data =
+                            data ??
+                            new List<DataKlaimLossRatio>()
+                    },
+                    JsonRequestBehavior.AllowGet
+                );
+            }
+            catch (Exception ex)
+            {
+                return Json(
+                    new
+                    {
+                        draw = draw,
+                        recordsTotal = 0,
+                        recordsFiltered = 0,
+
+                        data =
+                            new List<DataKlaimLossRatio>(),
+
+                        error =
+                            ex.Message
+                    },
+                    JsonRequestBehavior.AllowGet
+                );
+            }
+        }
+
         //public JsonResult GetDataKlaimDate(string SDate, string EDate, string TypeReport, List<string> ListTOC, string COB = "%", string TOC = "%", string stoken = "", int iroleid = 0)
         //{
 
@@ -1104,5 +1897,6 @@ namespace reporting_web.Controllers
                 throw new Exception("Timed out while trying to connect.");
         }
     }
+
 
 }
