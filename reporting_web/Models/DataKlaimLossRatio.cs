@@ -24,5 +24,16 @@ namespace reporting_web.Models
         // INTERNAL
         public int RecordsTotal { get; set; }
         public int RecordsFiltered { get; set; }
+        public double TotalClaim { get; set; }
+
+        public double LR_Gross_Total { get; set; }
+
+        public double LR_Gross_SettledNet { get; set; }
+
+        public double LR_Net_Settled { get; set; }
+
+        public double LR_Net_Total { get; set; }
+
+        public double LR_Net_SettledNet { get; set; }
     }
 }
