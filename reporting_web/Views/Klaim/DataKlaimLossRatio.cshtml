@@ -97,6 +97,28 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <div>
+                                <label>Branch</label>
+                            </div>
+                            <div>
+                                <select id="BranchSel" multiple="multiple" required=required name="BranchSel">
+
+                                    @if (ViewBag.BranchCode != null)
+                                    {
+                                        foreach (var item in ViewBag.BranchCode)
+                                        {
+                                            if (item.Text != null)
+                                            {
+                                                <option value="@item.Value">
+                                                    (@item.Value) @item.Text
+                                                </option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <div class="row">
                                 <div class="col-md-4">
                                     <button class="btn btn-info" id="btnKlaimLossRatio"> Load Data</button>
@@ -110,6 +132,7 @@
                 <div id="message_table"></div>
                 <div id="message_table_cob"></div>
                 <div id="message_table_toc"></div>
+                <div id="message_table_branch"></div>
                 <div id="divPeriode"></div>
                 <div id="divGetPeriode"></div>
 
@@ -249,6 +272,25 @@
                 $('.multiselect-container .multiselect-filter', $('#COBSel').parent()).css({
                     'position': 'sticky', 'top': '0px', 'z-index': 1,
                 });
+
+                $('#BranchSel').multiselect({
+                    includeSelectAllOption: true,         /*To enable the Select all Option*/
+                    selectAllValue: 'multiselect-all',     /*The value used for the select all option can be configured using the selectAllValue*/
+                    enableFiltering: true,   /*A filter input will be added to dynamically filter all the options*/
+                    enableCaseInsensitiveFiltering: true,  /*To enable Case Insenstitive Filtering (Upper and Lower Case Letters)*/
+                    maxHeight: '300',
+                    buttonWidth: '300',
+                    nSelectedText: 'Selecciones',
+                    enableHTML: true,
+                    templates: {
+                        filter: '<li class="multiselect-item multiselect-filter"><div class="input-group mb-3"><div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-search"></i></span></div><input class="form-control multiselect-search" type="text" /></div></li>',
+                        filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default multiselect-clear-filter" type="button"><i class="fa fa-times"></i></button></span>'
+                    }
+                });
+
+                $('.multiselect-container .multiselect-filter', $('#BranchSel').parent()).css({
+                    'position': 'sticky', 'top': '0px', 'z-index': 1,
+                })                
             });
 
             $("#txtcobname").autocomplete({
@@ -466,9 +508,13 @@
                 var $listTOC = [];
                 var $tocdes = "''";
 
+                var $branchid = "%";
+                var $listCab = [];
+                var $kodecab = "''";                
+                var $branchdes = "ALL";
 
                 // =========================================================
-                // 2. AMBIL TOC YANG DIPILIH
+                // 2. AMBIL TOC & BRANCH YANG DIPILIH
                 // =========================================================
 
                 var selected = $("#COBSel option:selected");
@@ -478,6 +524,25 @@
                     $listTOC.push($(this).val());
                     $tocdes += ",'" + $(this).text() + "'";
                 });
+
+                //Branch Selected
+                var selectedBranch = $('#BranchSel option:selected');
+
+                if (selectedBranch.length > 0) {
+
+                    $listCab = selectedBranch.map(function () {
+                        return $(this).val().trim();
+                    }).get();
+
+                    $branchdes = selectedBranch.map(function () {
+                        return $(this).text().trim();
+                    }).get().join(", ");
+
+                    if ($listCab.length === 1) {
+                        $branchid = $listCab[0];
+                    }
+                }
+
 
                 // =========================================================
                 // 3. DEFAULT COB
@@ -489,14 +554,17 @@
                 }
 
                 // =========================================================
-                // 4. DEFAULT TOC
+                // 4. DEFAULT TOC & BRANCH
                 // =========================================================
 
                 if ($tocid == "''" || $tocdes == "''") {
                     $tocid = "%";
                     $tocdes = "ALL";
+                }                
+                if ($branchid == "''" || $branchdes == "''") {
+                    $kodecab = "%";
+                    $branchdes = "ALL";
                 }
-
                 // =========================================================
                 // 5. VALIDASI TANGGAL
                 // =========================================================
@@ -514,6 +582,7 @@
                 var $message = "PERIODE: " + $sdate + " s/d " + $edate + "\n";
                 $message += "BY COB: " + $cobdes + "\n";
                 $message += "BY TOC: " + $tocdes;
+                $message += "BY Branch: " + $branchdes + "<br>";
 
                 // =========================================================
                 // 7. TAMPILKAN FILTER DI HALAMAN
@@ -522,6 +591,7 @@
                 $('#divPeriode').html('<b>Periode: ' + $sdate + ' s/d ' + $edate +'</b>');
                 $('#message_table_cob').html('<b>BY COB: ' + $cobdes + '</b>');
                 $('#message_table_toc').html('<b>BY TOC: ' + $tocdes + '</b>');
+                $('#message_table_branch').html('<b>BY BRANCH: ' + $branchdes + '</b>');
 
                 // =========================================================
                 // 8. AMBIL INFORMASI PERIODE DATA KLAIM
@@ -595,7 +665,9 @@
                         EDate:$edate,
                         COB:$cobid,
                         TOC:$tocid,
-                        ListTOC:$listTOC
+                        ListTOC: $listTOC,
+                        BRANCH: $branchid,
+                        ListBranch: $listCab.join(',')
                     },
 
                     success: function (response) {

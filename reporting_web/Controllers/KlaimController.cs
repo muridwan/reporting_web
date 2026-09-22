@@ -14,6 +14,7 @@ using reporting_web.Security;
 using reporting_web.Helpers;
 using ClosedXML.Excel;
 using System.IO;
+using System.Web.UI.WebControls;
 
 namespace reporting_web.Controllers
 {
@@ -452,6 +453,14 @@ namespace reporting_web.Controllers
                 if (result != null)
                 {
                     ViewBag.COBID = result.Select(x => new SelectListItem { Text = x.DESCRIPTION, Value = x.TOC1.ToString() });
+                }
+            }
+            using (DataBranch db = new DataBranch())
+            {
+                var result = (from BranchList in db.Branches select BranchList).ToList();
+                if (result != null)
+                {
+                    ViewBag.BranchCode = result.Select(x => new SelectListItem { Text = x.Name, Value = x.Branch1.ToString() });
                 }
             }
             VerifiyToken menu = new VerifiyToken();
@@ -968,6 +977,13 @@ namespace reporting_web.Controllers
                 string TOC =
                     Request.Form["TOC"] ?? "%";
 
+                string BRANCH =
+                    Request.Form["BRANCH"] ?? "%";
+
+                if (string.IsNullOrWhiteSpace(BRANCH))
+                {
+                    BRANCH = "%";
+                }
 
                 // =====================================================
                 // VALIDASI TANGGAL
@@ -1030,8 +1046,40 @@ namespace reporting_web.Controllers
                         }
                     }
                 }
+                // =====================================================
+                // LIST BRANCH
+                // =====================================================
 
+                string[] listBranchValues = Request.Form.GetValues("ListBranch");
 
+                List<string> ListBranch = new List<string>();
+
+                if (listBranchValues != null)
+                {
+                    foreach (string value in listBranchValues)
+                    {
+                        if (string.IsNullOrWhiteSpace(value))
+                            continue;
+
+                        string[] splitValuesBranch =
+                            value.Split(
+                                new[] { ',' },
+                                StringSplitOptions.RemoveEmptyEntries
+                            );
+
+                        foreach (string branch in splitValuesBranch)
+                        {
+                            string cleanBranch =
+                                branch.Trim();
+
+                            if (!string.IsNullOrEmpty(cleanBranch))
+                            {
+                                ListBranch.Add(cleanBranch);
+                            }
+                        }
+                    }
+                }
+                
                 // =====================================================
                 // TOKEN & ROLE
                 // =====================================================
@@ -1064,6 +1112,8 @@ namespace reporting_web.Controllers
                         ListTOC,
                         stoken,
                         iroleid,
+                        BRANCH,
+                        ListBranch,
                         out reportKey,
                         out recordsTotal
                     );
@@ -1101,15 +1151,17 @@ namespace reporting_web.Controllers
         }
 
         private bool GenerateLossRatioReport(
-    DateTime SDate,
-    DateTime EDate,
-    string COB,
-    string TOC,
-    List<string> ListTOC,
-    string token,
-    int roleid,
-    out Guid reportKey,
-    out int recordsTotal)
+            DateTime SDate,
+            DateTime EDate,
+            string COB,
+            string TOC,
+            List<string> ListTOC,
+            string token,
+            int roleid,
+            string Cbg,
+            List<string> ListBranch,
+            out Guid reportKey,
+            out int recordsTotal)
         {
             reportKey = Guid.Empty;
             recordsTotal = 0;
@@ -1117,7 +1169,7 @@ namespace reporting_web.Controllers
             try
             {
                 // =====================================================
-                // TVP LIST TOC
+                // TVP LIST TOC & BRANCH
                 // =====================================================
 
                 DataTable tvp = new DataTable();
@@ -1142,6 +1194,25 @@ namespace reporting_web.Controllers
                     }
                 }
 
+                DataTable dtb = new DataTable();
+
+                dtb.Columns.Add(
+                    new DataColumn(
+                        "n",
+                        typeof(string)
+                    )
+                );
+
+                if (ListBranch != null)
+                {
+                    foreach (string cbg in ListBranch)
+                    {
+                        if (!string.IsNullOrWhiteSpace(cbg))
+                        {
+                            dtb.Rows.Add(cbg.Trim());
+                        }
+                    }
+                }
 
                 // =====================================================
                 // CONNECTION STRING
@@ -1268,6 +1339,33 @@ namespace reporting_web.Controllers
                         ).Value =
                             roleid;
 
+                        // =============================================
+                        // Branch
+                        // =============================================
+
+                        cmd.Parameters.Add(
+                            "@Cbg",
+                            SqlDbType.VarChar
+                        ).Value =
+                            string.IsNullOrWhiteSpace(Cbg)
+                                ? "%"
+                                : Cbg;
+
+                        // =============================================
+                        // LIST Branch
+                        // =============================================
+
+                        SqlParameter pListBranch =
+                            cmd.Parameters.Add(
+                                "@ListBranch",
+                                SqlDbType.Structured
+                            );
+
+                        pListBranch.TypeName =
+                            "dbo.varchar_list_tbltype";
+
+                        pListBranch.Value =
+                            dtb;
 
                         // =============================================
                         // REPORT KEY OUTPUT
