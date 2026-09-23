@@ -1461,9 +1461,9 @@ namespace reporting_web.Controllers
             Guid reportKey,int start,int length,string search,int orderColumn,                                                                               
             string orderDir,out int recordsTotal,out int recordsFiltered,             
             out double totalPremi,out double totalPotongan,
-            out double totalPremiNet,out double totalSettleKlaim,
-            out double totalSubrogasi,out double totalKlaimNet,
+            out double totalPremiNet, out double totalSettleKlaim,
             out double totalOSKlaim, out double totalClaim, 
+            out double totalSubrogasi,out double totalKlaimNet,             
             out double totalLRSettleKlaim, out double totalLRGrossTotal,
             out double totalLRGrossSettledNet, out double totalLRNetSettled,
             out double totalLRNetTotal, out double totalLRNetSettledNet)
@@ -1876,7 +1876,7 @@ namespace reporting_web.Controllers
         }
 
         [HttpGet]        
-        public ActionResult ExportLossRatioExcel(Guid ReportKey,string Search = "")
+        public ActionResult ExportLossRatioExcel(Guid ReportKey,string Search = "", string Header="")
         {
             try
             {
@@ -2087,7 +2087,7 @@ namespace reporting_web.Controllers
                     // =================================================
 
                     ws.Cell(1, 1).Value =
-                        "DATA KLAIM LOSS RATIO";
+                        "DATA KLAIM LOSS RATIO " + Header;
 
                     ws.Range(
                         1,
@@ -2113,6 +2113,16 @@ namespace reporting_web.Controllers
                         .Horizontal =
                             XLAlignmentHorizontalValues.Center;
 
+                    ws.Cell(1, 1)
+                        .Style
+                        .Alignment
+                        .Vertical =
+                            XLAlignmentVerticalValues.Center;
+
+                    ws.Cell(1, 1)
+                        .Style
+                        .Alignment
+                        .WrapText = true;
 
                     // =================================================
                     // HEADER

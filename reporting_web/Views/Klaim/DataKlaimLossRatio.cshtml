@@ -504,9 +504,9 @@
                 var $cobid = $('#cobid').val();
                 var $cobdes = $('#txtcobname').val();
 
-                var $tocid = "''";
+                var $tocid = "%";
                 var $listTOC = [];
-                var $tocdes = "''";
+                var $tocdes = "ALL";
 
                 var $branchid = "%";
                 var $listCab = [];
@@ -519,11 +519,27 @@
 
                 var selected = $("#COBSel option:selected");
 
-                selected.each(function () {
-                    $tocid += " , TOC = " + $(this).val();
-                    $listTOC.push($(this).val());
-                    $tocdes += ",'" + $(this).text() + "'";
-                });
+                //selected.each(function () {
+                //    $tocid += " , TOC = " + $(this).val();
+                //    $listTOC.push($(this).val());
+                //    $tocdes += ",'" + $(this).text() + "'";
+                //});
+
+                if (selected.length > 0) { 
+
+                    $listTOC = selected.map(function () {
+                        return $(this).val().trim();
+                    }).get();
+
+                    $tocdes = selected.map(function() {
+                        return $(this).text().trim()
+                    }).get().join(", ");
+
+                    $tocid = selected.map(function () { 
+                        return $(this).val().trim();
+                    }).get().join(", ")
+                }
+                
 
                 //Branch Selected
                 var selectedBranch = $('#BranchSel option:selected');
@@ -538,9 +554,9 @@
                         return $(this).text().trim();
                     }).get().join(", ");
 
-                    if ($listCab.length === 1) {
-                        $branchid = $listCab[0];
-                    }
+                    $branchid = selectedBranch.map(function () {
+                        return $(this).val().trim();
+                    }).get().join(", ");                                        
                 }
 
 
@@ -557,14 +573,14 @@
                 // 4. DEFAULT TOC & BRANCH
                 // =========================================================
 
-                if ($tocid == "''" || $tocdes == "''") {
-                    $tocid = "%";
-                    $tocdes = "ALL";
-                }                
-                if ($branchid == "''" || $branchdes == "''") {
-                    $kodecab = "%";
-                    $branchdes = "ALL";
-                }
+                //if ($tocid == "''" || $tocdes == "''") {
+                //    $tocid = "%";
+                //    $tocdes = "ALL";
+                //}                
+                //if ($branchid == "''" || $branchdes == "''") {
+                //    $kodecab = "%";
+                //    $branchdes = "ALL";
+                //}
                 // =========================================================
                 // 5. VALIDASI TANGGAL
                 // =========================================================
@@ -583,6 +599,13 @@
                 $message += "BY COB: " + $cobdes + "\n";
                 $message += "BY TOC: " + $tocdes;
                 $message += "BY Branch: " + $branchdes + "<br>";
+
+                // Untuk EXCEL
+                var $messageExcel =
+                    "PERIODE: " + $sdate + " s/d " + $edate + "\n" +
+                    "BY COB: " + $cobdes + "\n" +
+                    "BY TOC: " + $tocdes + "\n" +
+                    "BY Branch: " + $branchdes;
 
                 // =========================================================
                 // 7. TAMPILKAN FILTER DI HALAMAN
@@ -665,7 +688,7 @@
                         EDate:$edate,
                         COB:$cobid,
                         TOC:$tocid,
-                        ListTOC: $listTOC,
+                        ListTOC: $listTOC.join(','),
                         BRANCH: $branchid,
                         ListBranch: $listCab.join(',')
                     },
@@ -1018,7 +1041,9 @@
                                                     '?ReportKey=' +
                                                     encodeURIComponent(reportKey) +
                                                     '&Search=' +
-                                                    encodeURIComponent(search);
+                                                    encodeURIComponent(search) +
+                                                    '&Header=' +
+                                                    encodeURIComponent($messageExcel);
 
                                                 window.location.href = url;
                                             }
